@@ -1,87 +1,147 @@
 #!/bin/bash
+# =============================================================================
+# Data Preparation Pipeline (e3-ui)
+# =============================================================================
 
-echo "Deleting existing contacts files.."
-rm backend/storage/contacts/*
+set -euo pipefail
 
-# echo "Deleting existing container..."
-# docker rm e3nldbpostgres --force
+# -- Logging helpers ----------------------------------------------------------
+LOG_FILE="storage/data-prep-$(date +%Y%m%d_%H%M%S).log"
+STEP=0
+FAILED=0
+PASSED=0
+PIPELINE_START=$(date +%s)
 
-# echo "Deploy Postgress..."
-# docker compose up -d
+# Test data lives in the e3 repo (sibling directory)
+E3_DATA_DIR="../e3/storage/data"
 
-# echo "Waiting for DB creation..."
-# sleep 10
+log()  { local ts; ts=$(date '+%Y-%m-%d %H:%M:%S'); printf "[%s] %s\n" "$ts" "$*" | tee -a "$LOG_FILE"; }
+info() { log "INFO  $*"; }
+warn() { log "WARN  $*"; }
+err()  { log "ERROR $*"; }
 
-echo "Creating schema..."
-python "$PWD/ai/agents/NaturalLanguageDatabase/initializedb.py" > /dev/null
+run_step() {
+  STEP=$((STEP + 1))
+  local label="$1"; shift
+  local step_start; step_start=$(date +%s)
 
-echo "Loading original all contacts..."
-python $PWD/ai/agents/NaturalLanguageDatabase/tsv_to_db_original_contacts.py \
-"$PWD/ai/test_data/master_contact_lists/27k-export - E3-export.tsv" > /dev/null
+  info "── Step $STEP: $label ──"
 
-echo "Importing validated contacts..."
-python ai/agents/NaturalLanguageDatabase/tsv_to_db_validated_contacts.py tsv \
-"$PWD/ai/test_data/prod/dbload_validated/tsv" > /dev/null
-python ai/agents/NaturalLanguageDatabase/tsv_to_db_validated_contacts.py csv \
-"$PWD/ai/test_data/prod/dbload_validated/csv" > /dev/null
+  if "$@" >> "$LOG_FILE" 2>&1; then
+    local elapsed=$(( $(date +%s) - step_start ))
+    info "✅ Step $STEP passed (${elapsed}s)"
+    PASSED=$((PASSED + 1))
+  else
+    local elapsed=$(( $(date +%s) - step_start ))
+    err  "❌ Step $STEP FAILED (${elapsed}s) — command: $*"
+    FAILED=$((FAILED + 1))
+  fi
+  echo "" | tee -a "$LOG_FILE"
+}
 
-echo "Validating responses come back from nldb..."
-python "$PWD/ai/agents/NaturalLanguageDatabase/query.py"
+# -- Pre-flight ---------------------------------------------------------------
+mkdir -p storage/contacts
+mkdir -p storage/database
+mkdir -p "$(dirname "$LOG_FILE")"
+info "Pipeline started — log: $LOG_FILE"
+echo ""
 
-echo "nldb query + TSV file generation..."
-python -m ai.agents.NaturalLanguageDatabase "return all validated contacts"
-ls -la "$PWD/backend/storage/contacts/contacts.tsv"
+# -- Steps --------------------------------------------------------------------
 
-# echo "Validating email send..."
-# python -m ai.agents.NaturalLanguageEmailer_Mailgun_agent send "$(cat <<EOF
-# {
-#   "design_name": "email_design1.html",
-#   "html_email_design": "https://e3-designs.s3.amazonaws.com/email_design1.html",
-#   "subject": "This is a test!",
-#   "preview": "This is a test!",
-#   "from_data": "Jennie < jennie@e3.hawaiiapsi.org >",
-#   "tracking": "yes",
-#   "send_date": "2025-09-01"
-# }
-# EOF
-# )"
+run_step "Clean existing contacts" \
+  rm -f storage/contacts/*
 
-echo "Validating metrics grab..."
-python -m ai.agents.NaturalLanguageEmailer_Mailgun metrics
-ls -la "$PWD/backend/storage/metrics/email_metrics_current.png"
+run_step "Create DB schema" \
+  python -m agents.NaturalLanguageDatabase.initializedb
 
-echo "Starting email validation..."
-echo "Gather contacts subset to validate..."
-python -m ai.agents.NaturalLanguageDatabase "return contact with email kyle.weir@stonehill.in that is not valid"
-ls -la "$PWD/backend/storage/contacts/contacts.tsv"
+run_step "Load original contacts (27k export)" \
+  python -m agents.NaturalLanguageDatabase.tsv_to_db_original_contacts \
+  "$E3_DATA_DIR/master_contact_lists"
 
-echo "Initiate email validation..."
-python -m ai.agents.neverbounce "validate the top 1 invalid contacts"
+run_step "Import validated contacts (TSV)" \
+  python -m agents.NaturalLanguageDatabase.tsv_to_db_validated_contacts tsv \
+  "$E3_DATA_DIR/prod/dbload_validated/tsv"
 
-echo "validate new db entry with validated status..."
-# PGPASSWORD='nldbpostgres' psql -U nldbpostgres -d nldbpostgres -h localhost -p 5432 \
-# -t -A -c "SELECT row_to_json(crm_contacts) FROM crm_contacts WHERE email = 'migueltillisjr@gmail.com';"
-python -c 'import sqlite3, json; 
-conn = sqlite3.connect("backend/storage/database/crm.db"); 
-conn.row_factory = sqlite3.Row; 
-row = conn.execute("SELECT * FROM crm_contacts WHERE email = ?", ("migueltillisjr@gmail.com",)).fetchone(); 
-print(json.dumps(dict(row)) if row else "{}")'
+run_step "Import validated contacts (CSV)" \
+  python -m agents.NaturalLanguageDatabase.tsv_to_db_validated_contacts csv \
+  "$E3_DATA_DIR/prod/dbload_validated/csv"
 
+run_step "Validate NLDB responses" \
+  python -m agents.NaturalLanguageDatabase.query
 
-echo "Validating that the invalid contact was removed from DB..."
-# result=$(PGPASSWORD='nldbpostgres' psql -U nldbpostgres -d nldbpostgres -h localhost -p 5432 \
-#   -t -A -c "SELECT row_to_json(crm_contacts) FROM crm_contacts WHERE email = 'christopher.poznanski@csd15.net';")
+run_step "NLDB query + TSV generation" \
+  python -m agents.NaturalLanguageDatabase "return all validated contacts"
 
-python -c 'import sqlite3, json; 
-conn = sqlite3.connect("backend/storage/database/crm.db"); 
-conn.row_factory = sqlite3.Row; 
-row = conn.execute("SELECT * FROM crm_contacts WHERE email = ?", ("christopher.poznanski@csd15.net",)).fetchone(); 
-print(json.dumps(dict(row)) if row else "{}")'
-
-
-if [[ -z "$result" ]]; then
-  echo "✅ Invalid contact successfully removed from the database."
+# Verify the export file exists
+if [ -f "$PWD/storage/contacts/contacts.tsv" ]; then
+  info "  ↳ contacts.tsv exists ($(wc -l < "$PWD/storage/contacts/contacts.tsv") lines)"
 else
-  echo "❌ Contact still exists in the database:"
-  echo "$result"
+  warn "  ↳ contacts.tsv not found after export"
+fi
+
+run_step "Fetch email metrics" \
+  python -m agents.NaturalLanguageEmailer_Mailgun metrics
+
+if [ -f "$PWD/storage/metrics/email_metrics_current.png" ]; then
+  info "  ↳ email_metrics_current.png present"
+else
+  warn "  ↳ email_metrics_current.png not found"
+fi
+
+TEST_EMAIL="christopher.poznanski@csd15.net"
+
+run_step "Gather contacts subset for validation" \
+  python -m agents.NaturalLanguageDatabase \
+  "return contact with email ${TEST_EMAIL} that is not valid"
+
+run_step "Run email validation" \
+  python -m agents.NaturalLanguageContactsValidator \
+  "validate the contact with email ${TEST_EMAIL}"
+
+# -- Post-validation DB checks ------------------------------------------------
+info "── Post-validation checks ──"
+
+validated_row=$(python -c '
+import sqlite3, json
+conn = sqlite3.connect("storage/database/crm.db")
+conn.row_factory = sqlite3.Row
+row = conn.execute("SELECT * FROM crm_contacts WHERE email = ?",
+                    ("migueltillisjr@gmail.com",)).fetchone()
+print(json.dumps(dict(row)) if row else "")
+' 2>>"$LOG_FILE")
+
+if [ -n "$validated_row" ]; then
+  info "  ↳ Validated contact found: $validated_row"
+else
+  warn "  ↳ Validated contact (migueltillisjr@gmail.com) not found in DB"
+fi
+
+invalid_row=$(python -c "
+import sqlite3, json
+conn = sqlite3.connect('storage/database/crm.db')
+conn.row_factory = sqlite3.Row
+row = conn.execute('SELECT * FROM crm_contacts WHERE email = ?',
+                    ('${TEST_EMAIL}',)).fetchone()
+print(json.dumps(dict(row)) if row else '')
+" 2>>"$LOG_FILE")
+
+if [ -z "$invalid_row" ]; then
+  info "  ✅ Invalid contact (${TEST_EMAIL}) correctly removed"
+else
+  err  "  ❌ Invalid contact still in DB: $invalid_row"
+  FAILED=$((FAILED + 1))
+fi
+
+# -- Summary ------------------------------------------------------------------
+TOTAL_ELAPSED=$(( $(date +%s) - PIPELINE_START ))
+echo "" | tee -a "$LOG_FILE"
+info "================================================"
+info "Pipeline finished in ${TOTAL_ELAPSED}s"
+info "  Steps passed : $PASSED"
+info "  Steps failed : $FAILED"
+info "  Log file     : $LOG_FILE"
+info "================================================"
+
+if [ "$FAILED" -gt 0 ]; then
+  exit 1
 fi
