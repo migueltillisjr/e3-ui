@@ -3,438 +3,245 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Editor</title>
-  <link rel="stylesheet" href="css/tailwind.css">
-  <link rel="stylesheet" href="css/main.css">
+  <title>e3 — Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ SERVER_ROUTE_PREFIX }}/css/main.css">
   <script src="{{ SERVER_ROUTE_PREFIX }}/js/global.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-
-
 </head>
-<body class="min-h-screen flex flex-col bg-gray-100 p-4 font-sans">
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow">
-    
-    <!-- HTML Code Editor -->
-    <div class="flex flex-col h-[90vh] editor-container">
-      <label class="text-lg font-semibold mb-2">Editor</label>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar" role="toolbar" aria-label="Editor actions">
+    <div class="toolbar-group">
+      <button id="saveEmailDesignBtn" onclick="saveHTML()" class="toolbar-btn" title="Save Design">
+        <span class="icon">💾</span> Save
+      </button>
+      <button id="sendEmailBtn" onclick="sendEmail()" class="toolbar-btn toolbar-btn--accent" title="Send Email Now">
+        <span class="icon">📨</span> Send
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button id="toggleContactsBtn" class="toolbar-btn" title="Contacts">
+        <span class="icon">👤</span> Contacts
+      </button>
+      <button id="toggleEmailPanelBtn" class="toolbar-btn" title="Email Settings">
+        <span class="icon">⚙️</span> Settings
+      </button>
+      <button id="toggleMetricsBtn" class="toolbar-btn" title="View Email Metrics">
+        <span class="icon">📊</span> Metrics
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button onclick="toggleImgPanel('imageUploadPanel')" class="toolbar-btn" title="Image Gallery">
+        <span class="icon">🖼️</span> Images
+      </button>
+      <button onclick="togglePanel('navigationPanel')" class="toolbar-btn" title="Switch Design">
+        <span class="icon">�</span> Designs
+      </button>
+    </div>
+
+    <span class="toolbar-filename">{{ DESIGN_FILE }}</span>
+  </div>
+
+  <!-- Editor Layout -->
+  <div class="editor-layout">
+    <!-- Code Editor -->
+    <div class="editor-pane">
+      <div class="pane-header">
+        <div class="pane-header-dot"></div>
+        <span class="pane-header-label">HTML Editor</span>
+      </div>
       <div id="highlightedOutput"></div>
       <textarea
         id="htmlInput"
-        class="flex-grow p-4 rounded border border-gray-300 resize-none font-mono"
         placeholder="Type your HTML here..."
+        spellcheck="false"
+        aria-label="HTML code editor"
       ></textarea>
     </div>
 
-    <!-- Live Preview (editable) -->
-    <div class="flex flex-col h-[90vh]">
-      <label class="text-lg font-semibold mb-2">Live Preview</label>
+    <!-- Live Preview -->
+    <div class="preview-pane">
+      <div class="pane-header">
+        <div class="pane-header-dot" style="background: var(--success)"></div>
+        <span class="pane-header-label">Live Preview</span>
+      </div>
       <iframe
         id="preview"
-        contenteditable="true"
-        class="w-full h-[100vh] border rounded bg-white"
+        title="Email preview"
       ></iframe>
     </div>
-
   </div>
-
 
   <!-- Context Menu -->
-  <div id="contextMenu" class="context-menu">
-    <button id="aiPromptBtn" class="context-button">🤖 AI</button>
-    <!-- <button id="findBtn" class="context-button">🔍 Find</button> -->
-    <!-- <button id="searchBtn">🔍 Search</button>
-    <button id="nextBtn" disabled>➡️ Next Match</button> -->
+  <div id="contextMenu">
+    <button id="aiPromptBtn">🤖 Ask AI</button>
   </div>
 
-  <!-- LLM Prompt Modal -->
-  <div id="llmModal" class="llm-modal">
-    <button id="closeLlmModal" style="
-    position:absolute;
-    top:10px;
-    right:10px;
-    font-size:24px;
-    background:none;
-    border:none;
-    cursor:pointer;
-  ">&times;</button>
+  <!-- AI Prompt Modal -->
+  <div id="llmModal">
+    <button id="closeLlmModal" class="modal-close-btn" aria-label="Close">&times;</button>
     <h2 class="llm-modal-header">🤖 Ask AI</h2>
-    <textarea id="llmInput" class="llm-textarea"></textarea>
-    <button id="sendPromptBtn" class="llm-send-button">Send</button>
+    <textarea id="llmInput" placeholder="Describe what you want to change..."></textarea>
+    <button id="sendPromptBtn">Send to AI</button>
   </div>
 
   <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay">
-    ⏳ Sending to AI...
+  <div id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    Sending to AI...
   </div>
 
-<!-- Top Control Bar with Icons -->
-<div class="flex flex-row items-center gap-x-2 mb-4">
-<!-- View Metrics -->
-<button
-  id="toggleMetricsBtn"
-  class="text-xl bg-purple-100 text-purple-700 rounded px-3 py-1 hover:bg-purple-200"
-  title="View Email Metrics"
->
-  📊
-</button>
-
-  <!-- Save HTML -->
-  <button
-    id="saveEmailDesignBtn"
-    onclick="saveHTML()"
-    class="text-xl bg-gray-100 rounded px-3 py-1 hover:bg-gray-200"
-    title="Save Design"
-  >
-    💾
-  </button>
-
-  <!-- Toggle Contacts -->
-  <button
-    id="toggleContactsBtn"
-    class="text-xl bg-gray-100 rounded px-3 py-1 hover:bg-gray-200"
-    title="Contacts"
-  >
-    📁
-  </button>
-
-  <!-- Toggle Email Panel -->
-  <button
-    id="toggleEmailPanelBtn"
-    class="text-xl bg-gray-100 rounded px-3 py-1 hover:bg-gray-200"
-    title="Email Settings"
-  >
-  ⚙️
-  </button>
-
-  <!-- Send Email -->
-  <!-- onclick="sendEmail();scheduleCampaign();" -->
-  <button
-    id="sendEmailBtn"
-    onclick="sendEmail()" 
-    class="text-xl bg-blue-100 text-blue-700 rounded px-3 py-1 hover:bg-blue-200"
-    title="Send Email Now"
-  >
-    📨
-  </button>
-
-  <button
-  id=""
-  onclick="toggleImgPanel('imageUploadPanel')"
-  class="text-xl bg-purple-100 text-purple-700 rounded px-3 py-1 hover:bg-purple-200"
-  title="View Image Gallery"
->
-🖼️
-</button>
-
-
-<!-- Toggle Button -->
-<button
-  onclick="togglePanel('navigationPanel')"
-  class="text-xl bg-purple-100 text-purple-700 rounded px-3 py-1 hover:bg-purple-200"
-  title="Open Navigation Panel"
->
-📄
-</button>
-<!-- Toggle Button -->
-<button
-  class="text-xl bg-purple-100 text-purple-700 rounded px-3 py-1 hover:bg-purple-200"
-  title="Open Navigation Panel"
->
-{{ DESIGN_FILE }}
-</button>
-<!-- <button
-id=""
-onclick="toggleSchedulePanel()"
-class="text-xl bg-purple-100 text-purple-700 rounded px-3 py-1 hover:bg-purple-200"
-title="Scheduled Emails"
->
-📒
-</button> -->
-
-</div>
-
-<!-- Panel -->
-<div
-  id="navigationPanel"
-  class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white border rounded shadow-lg p-4 w-64 z-50 hidden"
->
-  <h3 class="text-lg font-semibold mb-3">Select Design:</h3>
-  <ul class="space-y-2">
-    <li><a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design1.html" class="text-blue-600 hover:underline">Email Design 1</a></li>
-    <li><a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design2.html" class="text-blue-600 hover:underline">Email Design 2</a></li>
-    <li><a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design3.html" class="text-blue-600 hover:underline">Email Design 3</a></li>
-  </ul>
-</div>
-
-
-<!-- Panels Container -->
-<div class="flex flex-row items-start gap-x-4">
-
-<!-- Scheduled Emails Panel -->
-<div class="relative w-96">
-  <div
-    id="schedulePanel"
-    class="absolute bottom-0 left-0 bg-white shadow-md border border-gray-300 p-4 rounded text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-50"
-  >
-    <div class="flex justify-between items-start mb-2">
-      <h3 class="text-base font-semibold">🗓️ Scheduled Emails</h3>
-      <button
-        onclick="closeSchedulePanel()"
-        style="
-          position:absolute;
-          top:10px;
-          right:10px;
-          font-size:24px;
-          background:none;
-          border:none;
-          cursor:pointer;"
-      >&times;</button>
+  <!-- Navigation Panel -->
+  <div id="navigationPanel" class="floating-panel hidden" style="width: 280px;">
+    <div class="panel-header">
+      <span class="panel-title">Select Design</span>
+      <button class="panel-close" onclick="togglePanel('navigationPanel')">&times;</button>
     </div>
-
-    <!-- Where scheduled emails will be injected -->
-    <div id="scheduledList" class="max-h-64 overflow-y-auto text-sm">
+    <div style="display:flex; flex-direction:column; gap:2px;">
+      <a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design1.html" class="nav-link">Email Design 1</a>
+      <a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design2.html" class="nav-link">Email Design 2</a>
+      <a href="{{ SERVER_ROUTE_PREFIX }}/?file=email_design3.html" class="nav-link">Email Design 3</a>
     </div>
   </div>
-</div>
 
-
-<!-- Image Gallery & Upload Panel -->
-<div class="relative w-96">
-  <div
-    id="imageUploadPanel"
-    class="absolute bottom-0 left-0 bg-white shadow-lg border border-gray-300 p-4 rounded text-sm opacity-0 pointer-events-none transition-opacity duration-300 max-h-[80vh] overflow-y-auto z-50"
-  >
-    <div class="flex justify-between items-start mb-3">
-      <h3 class="text-base font-semibold">🖼️ Upload & Gallery</h3>
-      <button
-        style="position:absolute; top:10px; right:10px; font-size:24px; background:none; border:none; cursor:pointer;"
-        onclick="toggleImgPanel('imageUploadPanel')"
-      >&times;</button>
+  <!-- Scheduled Emails Panel -->
+  <div id="schedulePanel" class="floating-panel opacity-0" style="width: 380px;">
+    <div class="panel-header">
+      <span class="panel-title">Scheduled Emails</span>
+      <button class="panel-close" onclick="closeSchedulePanel()">&times;</button>
     </div>
+    <div id="scheduledList" style="max-height: 240px; overflow-y: auto; font-size: 13px;"></div>
+  </div>
 
-    <form id="imageUploadForm" enctype="multipart/form-data" class="mb-4">
-      <input type="file" name="image" accept="image/*" class="mb-2 block w-full" />
-      <button
-        type="submit"
-        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded text-sm font-medium w-full"
-      >
-        ⬆️ Upload Image
-      </button>
+  <!-- Image Upload Panel -->
+  <div id="imageUploadPanel" class="floating-panel opacity-0" style="width: 400px;">
+    <div class="panel-header">
+      <span class="panel-title">Upload & Gallery</span>
+      <button class="panel-close" onclick="toggleImgPanel('imageUploadPanel')">&times;</button>
+    </div>
+    <form id="imageUploadForm" enctype="multipart/form-data" style="margin-bottom: 16px;">
+      <input type="file" name="image" accept="image/*" class="panel-input" style="margin-bottom: 8px;" />
+      <button type="submit" class="panel-btn panel-btn--primary">Upload Image</button>
     </form>
-
-    <p id="uploadStatus" class="mb-4 text-xs text-gray-600"></p>
-
-    <div id="imageGallery" class="grid grid-cols-2 gap-3">
-      <!-- images will be injected here -->
-    </div>
+    <p id="uploadStatus" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></p>
+    <div id="imageGallery"></div>
   </div>
-</div>
-
-
-
-
-
-
-<div class="flex justify-between items-start mb-2">
-  <!-- <h3 class="text-base font-semibold">📊 Email Metrics</h3> -->
-  <button id="closeLlmModal" style="
-  position:absolute;
-  top:10px;
-  right:10px;
-  font-size:24px;
-  background:none;
-  border:none;
-  cursor:pointer;
-" onclick="closeMetrics()">&times;</button>
-</div>
 
   <!-- Contacts Panel -->
-  <div class="relative w-80">
-    <div
-      id="contactsPanel"
-      class="absolute bottom-0 left-0 bg-white shadow-md border border-gray-300 p-4 rounded text-sm opacity-0 pointer-events-none transition-opacity duration-300"
-    >
-      <div class="flex justify-between items-start mb-2">
-        <h3 class="text-base font-semibold">📁 Download Contacts</h3>
-      <button id="closeLlmModal" style="
-      position:absolute;
-      top:10px;
-      right:10px;
-      font-size:24px;
-      background:none;
-      border:none;
-      cursor:pointer;
-    " 
-        onclick="const panel = document.getElementById('contactsPanel'); panel.classList.remove('opacity-100'); panel.classList.add('opacity-0', 'pointer-events-none');"
-        >&times;</button>
-      </div>
-      <p class="mb-2">Download a sample TSV file containing CRM contact information.</p>
-      <a
-        href="{{ SERVER_ROUTE_PREFIX }}/download_contacts"
-         class="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium"
-      >
-        ⬇️ Download contacts.tsv
-      </a>
-      <div class="mt-4 border-t pt-3">
-        <h3 class="text-base font-semibold mb-2">⬆️ Upload Contacts</h3>
-        <form id="uploadContactsForm" class="flex items-center gap-2">
-          <input id="contactsFile" type="file" accept=".tsv,.csv"
-                 class="text-xs border border-gray-300 rounded px-2 py-1" required />
-          <button type="submit"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium">
-            Upload
-          </button>
-        </form>
-        <p id="uploadContactsMsg" class="mt-2 text-xs text-gray-600"></p>
-      </div>
-      <!-- <p class="mt-3 text-gray-600 text-xs leading-snug">
-        <strong>Format:</strong><br />
-        id, first_name, last_name, email, phone, company, job_title, city, state, country
-      </p> -->
+  <div id="contactsPanel" class="floating-panel opacity-0" style="width: 360px;">
+    <div class="panel-header">
+      <span class="panel-title">Contacts</span>
+      <button class="panel-close"
+        onclick="this.closest('.floating-panel').classList.remove('opacity-100'); this.closest('.floating-panel').classList.add('opacity-0');"
+      >&times;</button>
+    </div>
+    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Download or upload your CRM contacts.</p>
+    <a href="{{ SERVER_ROUTE_PREFIX }}/download_contacts" class="panel-btn panel-btn--success" style="display:block; text-align:center; text-decoration:none; margin-bottom:16px;">
+      Download contacts.tsv
+    </a>
+    <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+      <span class="panel-label">Upload Contacts</span>
+      <form id="uploadContactsForm" style="display:flex; gap:8px; margin-top:6px;">
+        <input id="contactsFile" type="file" accept=".tsv,.csv" class="panel-input" required style="flex:1;" />
+        <button type="submit" class="panel-btn panel-btn--primary" style="width:auto; padding:8px 16px;">Upload</button>
+      </form>
+      <p id="uploadContactsMsg" style="margin-top:8px; font-size:12px; color:var(--text-muted);"></p>
     </div>
   </div>
 
   <!-- Email Settings Panel -->
-  <div class="relative w-80">
-    <div
-      id="emailPanel"
-      class="absolute bottom-0 left-0 bg-white shadow-md border border-gray-300 p-4 rounded text-sm opacity-0 pointer-events-none transition-opacity duration-300"
-    >
-      <div class="flex justify-between items-start mb-2">
-        <h3 class="text-base font-semibold">📧 Schedule & Setup</h3>
-      <button id="closeLlmModal" style="
-      position:absolute;
-      top:10px;
-      right:10px;
-      font-size:24px;
-      background:none;
-      border:none;
-      cursor:pointer;
-    " 
-    onclick="const panel = document.getElementById('emailPanel'); panel.classList.remove('opacity-100'); panel.classList.add('opacity-0', 'pointer-events-none');"
-    >&times;</button>
-      </div>
+  <div id="emailPanel" class="floating-panel opacity-0" style="width: 380px;">
+    <div class="panel-header">
+      <span class="panel-title">Email Settings</span>
+      <button class="panel-close"
+        onclick="this.closest('.floating-panel').classList.remove('opacity-100'); this.closest('.floating-panel').classList.add('opacity-0');"
+      >&times;</button>
+    </div>
 
-      <label style="display: none;" class="block mb-2">
-        <span class="text-sm font-medium">Design Name</span>
-        <input
-          id="designName"
-          type="text"
-          class="w-full border px-2 py-1 rounded"
-          placeholder="Design Name..."
-          value="{{ DESIGN_FILE }}"
-        />
+    <label style="display:none;">
+      <span class="panel-label">Design Name</span>
+      <input id="designName" type="text" class="panel-input" value="{{ DESIGN_FILE }}" />
+    </label>
+
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <label>
+        <span class="panel-label">Subject</span>
+        <input id="emailSubject" type="text" class="panel-input" placeholder="Email subject..." />
       </label>
-
-      <label class="block mb-2">
-        <span class="text-sm font-medium">Subject</span>
-        <input id="emailSubject" type="text" class="w-full border px-2 py-1 rounded" placeholder="Email subject..." />
+      <label>
+        <span class="panel-label">Preview Text</span>
+        <input id="emailPreview" type="text" class="panel-input" placeholder="Email preview..." value="none" />
       </label>
-
-      <label class="block mb-2">
-        <span class="text-sm font-medium">Preview Text</span>
-        <input id="emailPreview" type="text" class="w-full border px-2 py-1 rounded" placeholder="Email preview..." value="none" />
+      <label>
+        <span class="panel-label">From</span>
+        <input id="emailFrom" type="text" class="panel-input" placeholder="Name <email>" value="Jennie < jennie@e3.hawaiiapsi.org >" />
       </label>
-
-      <label class="block mb-2">
-        <span class="text-sm font-medium">From</span>
-        <input id="emailFrom" type="text" class="w-full border px-2 py-1 rounded" placeholder="Jennie < jennie@e3.hawaiiapsi.org >" value="Jennie < jennie@e3.hawaiiapsi.org >" />
-      </label>
-
-      <label class="block mb-2">
-        <span class="text-sm font-medium">Tracking</span>
-        <select id="emailTracking" class="w-full border px-2 py-1 rounded">
+      <label>
+        <span class="panel-label">Tracking</span>
+        <select id="emailTracking" class="panel-input">
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
       </label>
-
-      <label class="block mb-3">
-        <span class="text-sm font-medium">Schedule Send Date</span>
-        <input id="sendDate" type="date" class="w-full border px-2 py-1 rounded" value="2025-05-05" />
+      <label>
+        <span class="panel-label">Schedule Send Date</span>
+        <input id="sendDate" type="date" class="panel-input" value="2025-05-05" />
       </label>
-
-      <button
-        onclick="saveEmailSettings()"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium w-full"
-      >
-        💾 Save Email Settings
+      <button onclick="saveEmailSettings()" class="panel-btn panel-btn--primary" style="margin-top:4px;">
+        Save Email Settings
       </button>
     </div>
   </div>
 
-</div>
-
-
-<!-- Metrics Modal -->
-<div
-  id="metricsPanel"
-  class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white shadow-lg border border-gray-300 rounded p-4 opacity-0 pointer-events-none transition-opacity duration-300 z-50 w-[70vw]"
->
-  <div class="flex justify-between items-start mb-2">
-    <h3 class="text-base font-semibold">📊 Email Metrics</h3>
-    <button id="closeLlmModal" style="
-    position:absolute;
-    top:10px;
-    right:10px;
-    font-size:24px;
-    background:none;
-    border:none;
-    cursor:pointer;
-  " onclick="closeMetrics()">&times;</button>
+  <!-- Metrics Modal -->
+  <div id="metricsPanel" class="floating-panel opacity-0" style="width: 70vw; max-width: 900px;">
+    <div class="panel-header">
+      <span class="panel-title">Email Metrics</span>
+      <button class="panel-close" onclick="closeMetrics()">&times;</button>
+    </div>
+    <div id="spinner" style="display:none; text-align:center; padding:20px; color:var(--text-secondary);">Loading...</div>
+    <img id="metricsImage" src="{{ SERVER_ROUTE_PREFIX }}/view_metrics" alt="Email Metrics Chart" style="width:100%; border-radius:var(--radius-sm); border:1px solid var(--border);" />
   </div>
-  <div id="spinner" style="display:none;text-align: center; font-size: large;"><b>Loading...</b></div>
-  <img
-    id="metricsImage"
-    src="{{ SERVER_ROUTE_PREFIX }}/view_metrics"
-    alt="Email Metrics Chart"
-    class="w-full border rounded"
-  />
-</div>
 
-<!-- Add this popup container to your HTML -->
-<div id="emailConfirmPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-  background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:9999;">
-  <div style="background:#fff; padding:20px; border-radius:8px; max-width:500px;">
-    <h3>Confirm Email Settings</h3>
-    <div id="emailSummary" style="margin-bottom:20px;"></div>
-<div style="display: flex; justify-content: space-between; margin-top: 20px;">
-  <button id="confirmSendBtn">✅ Send Email</button>
-  <button onclick="document.getElementById('emailConfirmPopup').style.display='none';">❌ Cancel</button>
-</div>
+  <!-- Email Confirm Popup -->
+  <div id="emailConfirmPopup" style="display:none; position:fixed; inset:0; background:rgba(15,17,23,0.8); backdrop-filter:blur(4px); justify-content:center; align-items:center; z-index:9999;">
+    <div style="max-width:480px; width:90%;">
+      <h3>Confirm Email Settings</h3>
+      <div id="emailSummary" style="margin-bottom:20px; font-size:13px; color:var(--text-secondary);"></div>
+      <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button onclick="document.getElementById('emailConfirmPopup').style.display='none';" style="padding:8px 16px; background:var(--bg-tertiary); color:var(--text-secondary); border:1px solid var(--border); border-radius:var(--radius-sm); cursor:pointer; font-size:13px;">Cancel</button>
+        <button id="confirmSendBtn">Send Email</button>
+      </div>
+    </div>
   </div>
-</div>
 
-
-
-<script>
-  function refreshIframe() {
-  const iframe = document.getElementById("preview");
-  if (!iframe) return;
-
-  // Get base URL without cache-busting parameter
-  let baseUrl = iframe.dataset.baseUrl || iframe.src.split("?")[0];
-  
-  // Store original base URL if not already stored
-  iframe.dataset.baseUrl = baseUrl;
-
-  // Add a timestamp parameter to force refresh
-  const newUrl = baseUrl + "?t=" + new Date().getTime();
-  iframe.src = newUrl;
-  console.log("refreshed iframe");
-}
-</script>
-{%for js_file in js_files %}
-  {% if js_file != 'global.js' %}
-  <script src="{{ SERVER_ROUTE_PREFIX }}/js/{{ js_file }}"></script>
-  {% endif  %}
-{% endfor %}
+  <!-- Scripts -->
   <script>
-  function togglePanel(id) {
-    const panel = document.getElementById(id);
-    panel.classList.toggle("hidden");
-  }
+    function refreshIframe() {
+      const iframe = document.getElementById("preview");
+      if (!iframe) return;
+      let baseUrl = iframe.dataset.baseUrl || iframe.src.split("?")[0];
+      iframe.dataset.baseUrl = baseUrl;
+      iframe.src = baseUrl + "?t=" + Date.now();
+    }
   </script>
-  <!-- <elevenlabs-convai agent-id="agent_8401k4gz6600fxha1gevdqb07evk"></elevenlabs-convai><script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script> -->
+  {%for js_file in js_files %}
+    {% if js_file != 'global.js' %}
+    <script src="{{ SERVER_ROUTE_PREFIX }}/js/{{ js_file }}"></script>
+    {% endif %}
+  {% endfor %}
+  <script>
+    function togglePanel(id) {
+      document.getElementById(id).classList.toggle("hidden");
+    }
+  </script>
 </body>
 </html>
