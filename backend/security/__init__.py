@@ -11,10 +11,9 @@ from fastapi import FastAPI, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from ai.agents.router import route_ai_request
-from ai.agents.aws_agent import upload_html_design_to_bucket
-from ai.agents.NaturalLanguageEmailer_Mailgun.entrypoint import initiate_email_send
-from ai.agents.NaturalLanguageEmailer_Mailgun import get_metrics
+from agents.router import route_ai_request
+from agents.NaturalLanguageEmailer_Mailgun import upload_html_design_to_bucket, get_metrics
+from agents.NaturalLanguageEmailer_Mailgun.entrypoint import initiate_email_send
 import uvicorn
 import os
 import re
