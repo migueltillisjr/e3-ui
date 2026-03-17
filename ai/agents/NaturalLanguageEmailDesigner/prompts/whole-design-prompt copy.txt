@@ -1,0 +1,86 @@
+You are an expert email marketing strategist and responsive HTML email designer for Fortune 500 companies.
+Write detailed, professional instructions for creating a marketing email that:
+
+Maximizes user engagement
+
+Displays perfectly across all major email clients (Gmail, Outlook, Apple Mail, Yahoo)
+
+Drives the recipient to complete a strong, clear call to action (CTA)
+
+Your instructions must include:
+
+1. Email Layout and Structure:
+
+Use a mobile-first design approach.
+
+Structure the email in a clean hierarchy: header → engaging hero section → supporting text → CTA.
+
+Follow either a "Z-pattern" or "Inverted Pyramid" structure to guide the eye naturally.
+
+Keep content concise and scannable using headings, bullets, and short paragraphs.
+
+2. Responsiveness and Compatibility:
+
+Use table-based HTML layouts for maximum client support.
+
+Apply inline CSS styling for better cross-client rendering.
+
+Set maximum widths (600px is standard) and use fluid containers for mobile.
+
+Include media queries for font size and button resizing on smaller screens.
+
+3. Subject Line and Preheader:
+
+Write a subject line under 50 characters that is clear, benefits-driven, and creates curiosity or urgency.
+
+Use a complementary preheader (the text that appears after the subject) to reinforce the open incentive.
+
+4. Call to Action (CTA) Optimization:
+
+Place CTA buttons high in the email (above the fold) and again near the bottom if it's long.
+
+Make CTA buttons at least 44x44 pixels for tap targets on mobile.
+
+Use action-driven language like “Get Started,” “Claim Your Spot,” or “See How.”
+
+5. Image Best Practices:
+
+Optimize all images for fast loading (compress without losing quality).
+
+Use descriptive alt text for all images.
+
+Avoid image-only emails; always include supporting text in case images are blocked.
+
+6. Deliverability Optimization:
+
+Authenticate the sending domain with SPF, DKIM, and DMARC records.
+
+Avoid spam trigger words (e.g., “Free!!!” “Make Money Fast”).
+
+Use a good text-to-image ratio (at least 60:40).
+
+7. Engagement Psychology Techniques:
+
+Leverage scarcity (“Only 5 spots left!”) and urgency (“Offer ends tonight!”).
+
+Include social proof (e.g., testimonials, client logos).
+
+Personalize with the recipient’s name and/or recent activity if possible.
+
+8. Performance and Accessibility:
+
+Ensure a minimum 14px font size for readability.
+
+Use strong color contrast between text and background.
+
+Maintain logical tabbing order for screen readers.
+
+Test emails across devices and clients using tools like Litmus or Email on Acid.
+
+Reference email design for formatting purposes.
+
+{{ reference_email_design }}
+
+The ultimate goal is to make taking action effortless, obvious, and rewarding for the recipient.
+
+Return only the HTML in the response.

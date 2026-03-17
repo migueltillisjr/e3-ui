@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor</title>
+    <link rel="stylesheet" href="https://e3-pics.s3.us-west-1.amazonaws.com/chat_1_design.css">
+    <style>
+      * { scrollbar-width: none; }
+body { font-family: Arial, sans-serif; background-color: rgb(244, 244, 249); margin: 0px; padding: 0px; }
+.disabled { pointer-events: none; cursor: default; color: darkgray; background-color: grey !important; }
+.removed { display: none; }
+#fileInput { width: 50%; }
+.image-container { position: relative; border: 1px solid rgb(221, 221, 221); background: rgb(255, 255, 255); display: inline-block; cursor: move; }
+.image-container.dragging { opacity: 0.5; }
+.image { display: block; max-width: 100%; height: auto; }
+.resizer { width: 15px; height: 15px; background: rgb(52, 152, 219); position: absolute; right: 0px; bottom: 0px; cursor: se-resize; }
+.delete { width: 20px; height: 20px; background: rgb(231, 76, 60); color: rgb(255, 255, 255); font-size: 16px; line-height: 20px; text-align: center; border-radius: 50%; position: absolute; top: -10px; right: -10px; cursor: pointer; user-select: none; }
+#subjectTextarea { color: black; font-size: 0.9rem; margin: 5px; }
+#subjectTextarea::placeholder { color: black; }
+.alert-banner { position: fixed; top: 0px; left: 0px; width: 100%; color: white; text-align: center; padding: 10px; font-size: 16px; z-index: 1000; display: none; }
+.show { display: block; animation: 0.5s ease-out 0s 1 normal none running slide-down; }
+@keyframes slide-down { 
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(0px); }
+}
+form { display: flex; justify-content: center; align-items: center; margin-bottom: 30px; gap: 10px; }
+form input[type="file"] { border: 1px solid rgb(221, 221, 221); padding: 8px; border-radius: 4px; font-size: 0.9rem; cursor: pointer; outline: none; }
+form button { padding: 10px 20px; font-size: 0.9rem; border: none; background-color: rgb(0, 123, 255); color: white; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
+form button:hover { background-color: rgb(0, 86, 179); }
+#prompt-dialogue { width: 70% !important; }
+.iframe-container { display: none; position: fixed; top: 10%; left: 10%; width: 80%; height: 80%; background: white; border: 2px solid rgb(0, 123, 255); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 20px; z-index: 1000; overflow: hidden; }
+.iframe-container iframe { width: 100%; height: 100%; border: none; }
+.iframe-close { position: absolute; top: 10px; right: 10px; background: rgb(0, 123, 255); color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.iframe-close:hover { background: rgb(0, 86, 179); }
+.editor-container { max-width: 800px; margin: 20px auto; padding: 20px; background-color: rgb(255, 255, 255); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px; }
+.toolbar { display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 15px; overflow-x: scroll; scrollbar-width: thin; }
+.toolbar button { padding: 8px 12px; font-size: 14px; background-color: rgb(0, 123, 255); color: rgb(255, 255, 255); border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; height: 50px !important; }
+.toolbar button:hover { background-color: rgb(0, 86, 179); }
+#editor { min-height: 300px; padding: 10px; border-radius: 5px; font-size: 16px; line-height: 1.5; overflow-y: auto; }
+.loading-indicator { display: none; padding: 10px; background-color: rgb(255, 235, 59); border: 1px solid rgb(255, 202, 40); border-radius: 5px; font-size: 14px; text-align: center; z-index: 2000; position: fixed; top: 40%; left: 50%; transform: translateX(-50%); }
+.context-menu { display: none; position: absolute; background-color: rgb(255, 255, 255); border: 1px solid rgb(221, 221, 221); border-radius: 5px; box-shadow: rgba(0, 0, 0, 0.1) 0px 2px 4px; z-index: 1000; }
+.context-menu button { display: block; width: 100%; padding: 10px; background-color: rgb(255, 255, 255); border-top: none; border-right: none; border-left: none; border-image: initial; border-bottom: 1px solid rgb(221, 221, 221); text-align: left; font-size: 14px; cursor: pointer; }
+.context-menu button:last-child { border-bottom: none; }
+.context-menu button:hover { background-color: rgb(244, 244, 249); }
+.columns { display: flex; gap: 10px; margin-top: 15px; }
+.column { flex: 1 1 0%; border: 1px solid rgb(221, 221, 221); padding: 10px; border-radius: 5px; }
+.column:focus { outline: rgb(0, 123, 255) solid 2px; }
+.html-editor { display: none; width: 100%; height: 300px; font-family: "Courier New", monospace; background-color: rgb(244, 244, 244); }
+.gallery-container { overflow-x: hidden; width: 100%; height: 500px; scrollbar-color: rgb(136, 136, 136) rgb(241, 241, 241); overflow-y: scroll !important; }
+.gallery-container::-webkit-scrollbar { width: 8px; height: 8px; }
+.gallery-container::-webkit-scrollbar-track { background: rgb(241, 241, 241); }
+.gallery-container::-webkit-scrollbar-thumb { background: rgb(136, 136, 136); border-radius: 4px; }
+.gallery-container::-webkit-scrollbar-thumb:hover { background: rgb(85, 85, 85); }
+.gallery { display: grid; grid-auto-flow: row; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; padding: 10px; max-width: 100%; max-height: 100%; }
+.gallery-item { position: relative; overflow: hidden; max-height: 100px; border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.15) 0px 4px 10px; transition: transform 0.3s, box-shadow 0.3s; }
+.gallery-item:hover { transform: scale(1.05); box-shadow: rgba(0, 0, 0, 0.2) 0px 6px 20px; }
+.gallery-item img { width: 100%; height: auto; display: block; object-fit: cover; border-radius: 8px; transition: opacity 0.3s; }
+.gallery-item:hover img { opacity: 0.9; }
+.resizable-container { position: relative; display: inline-block; }
+#myImage { width: 300px; height: 200px; }
+.resize-container { position: relative; display: inline-block; border: 1px solid rgb(221, 221, 221); overflow: hidden; max-width: 100%; }
+.resize-container img { display: block; width: 100%; height: auto; object-fit: contain; }
+.resize-handle { position: absolute; bottom: 0px; right: 0px; width: 15px; height: 15px; background: rgba(8, 8, 8, 0.07); border-radius: 50%; cursor: nwse-resize; z-index: 10; display: block; }
+.resize-container:hover .delete-btn, .resize-container:hover .resize-handle { display: block; }
+.resize-handle:hover { background: rgb(0, 86, 179); }
+.date-button { padding: 10px 20px; cursor: pointer; font-size: 16px; background-color: rgb(76, 175, 80); color: white; border: none; border-radius: 5px; }
+.save-button:hover, .date-button:hover { background-color: rgb(69, 160, 73); }
+.date-button { background-color: rgb(0, 140, 186); }
+.date-button:hover { background-color: rgb(0, 123, 181); }
+.date-selector-modal { display: none; position: fixed; z-index: 1; left: 0px; top: 0px; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); }
+.modal-content { background-color: white; padding: 20px; border-radius: 5px; width: 300px; margin: 100px auto; }
+.close { color: rgb(170, 170, 170); font-size: 28px; font-weight: bold; float: right; }
+.close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
+.chat-toggle-button { padding: 10px; font-size: 16px; background-color: rgb(0, 123, 255); color: white; border: none; border-radius: 50%; cursor: pointer; z-index: 0; }
+.chat-toggle-button:hover { background-color: rgb(0, 86, 179); }
+.chat-box { position: sticky; bottom: 80px; width: 85%; height: 400px; margin-left: auto; margin-right: auto; background-color: rgb(255, 255, 255); border-radius: 8px; box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 20px; display: none; flex-direction: column; z-index: 9999; }
+.chat-header { background-color: rgb(0, 123, 255); color: white; padding: 10px; text-align: center; font-size: 18px; border-radius: 8px 8px 0px 0px; position: relative; }
+.close-chat { position: absolute; top: 5px; right: 10px; background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+.close-chat:hover { color: rgb(221, 221, 221); }
+.chat-body { padding: 10px; overflow-y: auto; flex-grow: 1; font-size: 14px; }
+.chat-footer { display: flex; padding: 10px; background-color: rgb(241, 241, 241); border-radius: 0px 0px 8px 8px; }
+.chat-footer input { width: 80%; padding: 8px; border-radius: 5px; border: 1px solid rgb(221, 221, 221); }
+.chat-footer button { padding: 8px 12px; background-color: rgb(0, 123, 255); color: white; border: none; border-radius: 5px; cursor: pointer; }
+.chat-footer button:hover { background-color: rgb(0, 86, 179); }
+.user-message { margin-bottom: 10px; }
+
+    </style>
+  </head>
+  <body>
+    <div class="editor-container">
+      <div id="editor" contenteditable="false"><meta charset="UTF-8">
+
+    <div class="hero">
+        <h1><a style="background-color: rgba(0, 0, 0, 0.6);display: inline-block;text-decoration: none;color: white;" href="https://hawaiiapsi.org/"><span><i>🌴 Hawai'i APSI 2025</i><br></span></a></h1>
+        <p style="background-color: rgba(0, 0, 0, 0.6);display: inline-block;">July 14-17, 2025 | Damien Memorial School</p>
+        <p style="background-color: rgba(0, 0, 0, 0.6);display: inline-block;">Elevate your teaching, embrace the spirit of Aloha, and grow with top educators!</p><br>
+        <a href="https://eventreg.collegeboard.org/event/d8fb296f-fa8d-40e9-b912-6205b029a444/regProcessStep1" class="cta">Register Now</a>
+    </div>
+
+<!-- Hotel info -->
+<div style="display:none; max-height:0; overflow:hidden;">Secure your stay for Hawaii APSI 2025.</div>
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f4f4f4">
+  <tbody><tr>
+    <td align="center" style="padding:20px;">
+      <br><br><table width="600" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="border-radius:6px;">
+        <tbody><tr>
+          <td bgcolor="#003366" style="color:#fff; text-align:center; padding:20px; font-size:20px;">
+            Hotel Discounts
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px; font-size:15px; line-height:1.6;">
+            LDM Education Group is coordinating hotel and logistics for Hawaii APSI 2025.  
+            <br><br>
+            <a href="https://www.marriott.com/event-reservations/reservation-link.mi?id=1744415121730&amp;key=GRP&amp;guestreslink2=true&amp;app=resvlink" style="background:#007BFF; color:#fff; padding:10px 20px; text-decoration:none; border-radius:4px; display:inline-block;">Book Your Hotel</a>
+            <br><br>
+            <strong>Hotel:</strong> Courtyard by Marriott Waikiki Beach  
+            <br>400 Royal Hawaiian Ave, Honolulu, HI 96815  
+            <br>Phone: 808-954-4000  
+            <br><br>
+            <strong>Rate:</strong> $219/night ($258.34 with taxes)  
+            <br><strong>Dates:</strong> July 13–17, 2025  
+            <br><br>
+            <strong>Perks:</strong>  
+            <ul style="padding-left:16px; margin:10px 0;">
+              <li>Continental breakfast and lunch</li>
+              <li>Room upgrades to deluxe</li>
+              <li>$25 valet parking (normally $55)</li>
+              <li>Destination fee waived</li>
+              <li>No added guest fees</li>
+              <li>Free Wi-Fi &amp; fitness center</li>
+              <li>Extended stay rate (pre/post)</li>
+            </ul>
+            Please book ASAP to secure your room.
+          </td>
+        </tr>
+      </tbody></table>
+    </td>
+  </tr>
+</tbody></table>
+
+    <div class="section">
+        <h2><br><br>Why Attend?</h2>
+        <ul style="list-style: none; align-items: center;font-size: xx-large;">
+            <li>✅ Train with <strong>leading AP instructors</strong></li>
+            <li>✅ Level up with <strong>hands-on, high-impact workshops</strong></li>
+            <li>✅ Build lasting connections with <strong>top educators</strong></li>
+            <li>✅ Earn hours in <strong>Hawai’i’s inspiring setting</strong></li>
+        </ul>
+    </div>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
+        <tbody><tr>
+            <td align="center" style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="font-size: 26px; color: #333; text-transform: uppercase;">📚 Course Offerings</h2>
+            </td>
+        </tr>
+        <tr>
+            <td align="center">
+                <table role="presentation" cellspacing="0" cellpadding="10" border="0" width="100%" style="max-width: 700px; background: #fff4dc; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); padding: 15px;">
+                    <tbody><tr>
+                        <td align="center" style="font-family: Arial, sans-serif; font-size: 16px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="8" border="0">
+                                <tbody><tr>
+                                    <td align="center" colspan="2">
+                                        <p style="font-size: 18px; color: #0073e6; font-weight: bold;">Choose from a variety of AP® courses:</p>
+                                    </td>
+                                </tr>
+    
+                                <!-- Row 1 -->
+                                <tr>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/aa-studies.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® African American Studies</a>
+                                    </td>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/calculus-ab.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Calculus AB</a>
+                                    </td>
+                                </tr>
+    
+                                <!-- Row 2 -->
+                                <tr>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/chemistry.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Chemistry</a>
+                                    </td>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/precalculus.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Precalculus</a>
+                                    </td>
+                                </tr>
+    
+                                <!-- Row 3 -->
+                                <tr>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/english-language.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® English Language</a>
+                                    </td>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/english-literature.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® English Literature</a>
+                                    </td>
+                                </tr>
+    
+                                <!-- Row 4 -->
+                                <tr>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/human-geography.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Human Geography</a>
+                                    </td>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/macro-micro-economics.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Macro &amp; Micro Economics</a>
+                                    </td>
+                                </tr>
+    
+                                <!-- Row 5 -->
+                                <tr>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/physics.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Physics 1</a>
+                                    </td>
+                                    <td align="center" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/psychology.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Psychology</a>
+                                    </td>
+                                </tr>
+    
+                                <!-- Final Row -->
+                                <tr>
+                                    <td align="center" colspan="2" style="padding: 10px;">
+                                        <a href="https://hawaiiapsi.org/statistics.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Statistics</a>
+                                        <br><br>
+                                        <a href="https://hawaiiapsi.org/us-history.html" style="text-decoration: none; background: #0073e6; color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® U.S. History</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" colspan="2" style="padding: 15px;">
+                                        <a href="https://hawaiiapsi.org/biology.html" style="text-decoration: none; background: #ff8c00;  color: #fff; padding: 12px 20px; display: inline-block; border-radius: 8px; font-size: 16px;">AP® Biology</a>
+                                    </td>
+                                </tr>    
+                                <tr>
+                                    <td align="center" colspan="2" style="padding: 15px;">
+                                        <p style="font-size: 16px; color: #444;">View all courses and details on our website:</p>
+                                        <a href="https://hawaiiapsi.org/" style="text-decoration: none; background: #e67600; color: white; padding: 12px 20px; font-size: 18px; border-radius: 8px; display: inline-block;">Explore More Courses</a>
+                                    </td>
+                                </tr>
+    
+                            </tbody></table>
+                        </td>
+                    </tr>
+                </tbody></table>
+            </td>
+        </tr>
+    </tbody></table>
+
+    <div class="section">
+        <h2>📍 Event Details</h2>
+        <p style="font-size: xx-large;text-align: center;"><strong>Date &amp; Time:</strong> July 14-17, 2025 | 8:00 AM - 4:00 PM</p>
+        <p style="font-size: xx-large;text-align: center;"><strong>Location:</strong> Damien Memorial School</p>
+        <p style="font-size: xx-large;text-align: center;"><strong>Early Bird Registration Ends:</strong> May 16, 2025</p>
+        <p style="font-size: xx-large;text-align: center;"><strong>Registration Deadline:</strong> June 13, 2025</p>
+        <p style="font-size: xx-large;text-align: center;"><a href="https://eventreg.collegeboard.org/event/d8fb296f-fa8d-40e9-b912-6205b029a444/regProcessStep1" class="cta">Secure Your Spot</a></p>
+    </div>
+
+
+
+
+
+    <div class="footer">
+        <p>🌴 See you in Hawai'i! | <a href="https://HawaiiAPSI.org" style="color: #ffeb3b;">Visit our website</a></p></div><div style="text-align: center; margin-top: 15px;"><p data-start="262" data-end="472"><em data-start="262" data-end="470">This email is an advertisement or promotional message sent by https://hawaiiapsi.org. You are receiving this email because you subscribed to our newsletter, signed up for updates, or engaged with our services.</em></p><p data-start="762" data-end="871"><em data-start="762" data-end="869">If you have any questions, you can contact us at info@<em data-start="262" data-end="470">hawaiiapsi.org</em>&nbsp;visit our website at https://hawaiiapsi.org.</em></p>
+      </div>
+
+    </div>
+    </div>
+  </body>
+</html>
+  
