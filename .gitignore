@@ -9,6 +9,8 @@ e3-release.zip
 __pycache__/
 *.py[cod]
 *$py.class
+.env
+.env-prod
 
 # C extensions
 *.so
