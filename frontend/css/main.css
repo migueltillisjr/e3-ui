@@ -569,3 +569,183 @@ body {
     overflow-x: auto;
   }
 }
+
+/* ===== Contacts Spreadsheet ===== */
+.sheet-th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.sheet-th-num {
+  width: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.sheet-td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-td-num {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  background: var(--bg-secondary);
+  width: 40px;
+}
+
+.sheet-row-even { background: var(--bg-primary); }
+.sheet-row-odd  { background: var(--bg-secondary); }
+
+.sheet-row-even:hover,
+.sheet-row-odd:hover {
+  background: var(--bg-hover);
+}
+
+.badge-valid {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-invalid {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ===== Contacts Enhancements ===== */
+.sheet-th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background var(--transition);
+}
+
+.sheet-th-sortable:hover {
+  background: var(--bg-hover);
+}
+
+.sort-arrow {
+  font-size: 10px;
+  color: var(--accent-hover);
+}
+
+.sheet-delete-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition);
+  opacity: 0;
+}
+
+.sheet-row-even:hover .sheet-delete-btn,
+.sheet-row-odd:hover .sheet-delete-btn {
+  opacity: 1;
+}
+
+.sheet-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+.contacts-save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  margin-top: 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-sm);
+}
+
+/* ===== Editor Chat Bar ===== */
+.editor-chat-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.editor-chat-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.editor-chat-input {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.editor-chat-input:focus {
+  border-color: var(--accent);
+}
+
+.editor-chat-send {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+
+.editor-chat-send:hover {
+  background: var(--accent-hover);
+}

@@ -29,6 +29,8 @@
       loadingOverlay.style.display = 'none';
       msg.textContent = `✅ Imported ${data.rows} contacts (saved: ${data.saved}).`;
       msg.className = "mt-2 text-xs text-green-700";
+      // Refresh the contacts spreadsheet
+      if (typeof window.refreshContactsSheet === 'function') window.refreshContactsSheet();
     } catch (e) {
       loadingOverlay.style.display = 'none';
       msg.textContent = `❌ Error: ${e.message}`;

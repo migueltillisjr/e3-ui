@@ -307,6 +307,12 @@ async def ai_agent(request: Request, payload: dict = Body(...)):
         print(payload.get("message"))
         response = route_ai_request(query=payload.get("message"))
         print({"response": response})
+        # Save the prompt if contacts were generated
+        contacts_tsv = os.path.join(CONTACTS_DIR, "contacts.tsv")
+        if os.path.exists(contacts_tsv):
+            prompt_file = os.path.join(CONTACTS_DIR, "contacts_prompt.txt")
+            with open(prompt_file, "w", encoding="utf-8") as f:
+                f.write(payload.get("message", ""))
         return {"response": response}
     except Exception as e:
         return {"error": str(e)}
@@ -460,6 +466,34 @@ async def download_contacts():
         return FileResponse(path, filename="contacts.tsv", media_type="text/tab-separated-values")
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.get(f"{SERVER_ROUTE_PREFIX}/contacts_json")
+async def contacts_json():
+    """Return contacts as JSON with the prompt that generated them."""
+    try:
+        tsv_path = os.path.join(CONTACTS_DIR, "contacts.tsv")
+        prompt_path = os.path.join(CONTACTS_DIR, "contacts_prompt.txt")
+
+        if not os.path.exists(tsv_path):
+            return JSONResponse(status_code=404, content={"error": "No contacts found."})
+
+        df = pd.read_csv(tsv_path, sep="\t", dtype=str).fillna("")
+        rows = df.to_dict(orient="records")
+
+        prompt = ""
+        if os.path.exists(prompt_path):
+            with open(prompt_path, "r", encoding="utf-8") as f:
+                prompt = f.read().strip()
+
+        return JSONResponse(content={
+            "prompt": prompt,
+            "columns": list(df.columns),
+            "rows": rows,
+            "total": len(rows),
+        })
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.post(f"{SERVER_ROUTE_PREFIX}/upload_contacts")

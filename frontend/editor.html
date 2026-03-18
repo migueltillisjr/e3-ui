@@ -65,6 +65,17 @@
         spellcheck="false"
         aria-label="HTML code editor"
       ></textarea>
+      <div class="editor-chat-bar">
+        <span class="editor-chat-icon">🤖</span>
+        <input
+          id="editorChatInput"
+          type="text"
+          class="editor-chat-input"
+          placeholder="Ask AI…"
+          aria-label="Ask AI"
+        />
+        <button id="editorChatSend" class="editor-chat-send" title="Send">↵</button>
+      </div>
     </div>
 
     <!-- Live Preview -->
@@ -136,24 +147,54 @@
   </div>
 
   <!-- Contacts Panel -->
-  <div id="contactsPanel" class="floating-panel opacity-0" style="width: 360px;">
+  <div id="contactsPanel" class="floating-panel opacity-0" style="width: 90vw; max-width: 1200px; max-height: 85vh;">
     <div class="panel-header">
-      <span class="panel-title">Contacts</span>
-      <button class="panel-close"
-        onclick="this.closest('.floating-panel').classList.remove('opacity-100'); this.closest('.floating-panel').classList.add('opacity-0');"
-      >&times;</button>
+      <span class="panel-title">📋 Contacts</span>
+      <button class="panel-close" id="closeContactsPanel">&times;</button>
     </div>
-    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">Download or upload your CRM contacts.</p>
-    <a href="{{ SERVER_ROUTE_PREFIX }}/download_contacts" class="panel-btn panel-btn--success" style="display:block; text-align:center; text-decoration:none; margin-bottom:16px;">
-      Download contacts.tsv
-    </a>
-    <div style="border-top: 1px solid var(--border); padding-top: 12px;">
+
+    <!-- Prompt display -->
+    <div id="contactsPromptBar" style="display:none; margin-bottom:12px; padding:10px 14px; background:var(--accent-subtle); border:1px solid var(--border); border-radius:var(--radius-sm); font-size:13px; color:var(--text-secondary);">
+      <span style="color:var(--accent-hover); font-weight:600;">Prompt:</span>
+      <span id="contactsPromptText"></span>
+    </div>
+
+    <!-- Stats row with search -->
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+      <span id="contactsCount" style="font-size:12px; color:var(--text-muted);"></span>
+      <input id="contactsSearch" type="text" class="panel-input" placeholder="Search contacts…" style="max-width:260px; height:30px; font-size:12px;" />
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <a id="contactsDownloadLink" href="" class="toolbar-btn" style="font-size:12px; text-decoration:none; height:30px;">
+          ⬇️ Download TSV
+        </a>
+      </div>
+    </div>
+
+    <!-- Empty state -->
+    <div id="contactsEmptyState" style="display:none; text-align:center; padding:40px 20px; color:var(--text-muted); font-size:14px;"></div>
+
+    <!-- Spreadsheet -->
+    <div id="contactsTableWrap" style="overflow:auto; max-height:55vh; border:1px solid var(--border); border-radius:var(--radius-sm);">
+      <table id="contactsTable" style="width:100%; border-collapse:collapse; font-size:12px; white-space:nowrap;">
+        <thead id="contactsThead"></thead>
+        <tbody id="contactsTbody"></tbody>
+      </table>
+    </div>
+
+    <!-- Upload section -->
+    <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px;">
       <span class="panel-label">Upload Contacts</span>
       <form id="uploadContactsForm" style="display:flex; gap:8px; margin-top:6px;">
         <input id="contactsFile" type="file" accept=".tsv,.csv" class="panel-input" required style="flex:1;" />
         <button type="submit" class="panel-btn panel-btn--primary" style="width:auto; padding:8px 16px;">Upload</button>
       </form>
       <p id="uploadContactsMsg" style="margin-top:8px; font-size:12px; color:var(--text-muted);"></p>
+    </div>
+
+    <!-- Loading state -->
+    <div id="contactsLoading" style="display:none; text-align:center; padding:40px; color:var(--text-secondary);">
+      <div class="loading-spinner" style="margin:0 auto 12px;"></div>
+      Loading contacts...
     </div>
   </div>
 
@@ -232,6 +273,64 @@
       iframe.dataset.baseUrl = baseUrl;
       iframe.src = baseUrl + "?t=" + Date.now();
     }
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const chatInput = document.getElementById("editorChatInput");
+      const chatSend  = document.getElementById("editorChatSend");
+
+      function sendChat() {
+        const prompt = chatInput.value.trim();
+        if (!prompt) return;
+
+        const htmlInput = document.getElementById("htmlInput");
+        const selStart = htmlInput.selectionStart;
+        const selEnd   = htmlInput.selectionEnd;
+        const selected = htmlInput.value.substring(selStart, selEnd).trim();
+        const combined = `User Prompt:\n${prompt}\n\nContext:\n${selected}`;
+
+        chatInput.value = "";
+        chatInput.disabled = true;
+        chatSend.disabled = true;
+        chatInput.placeholder = "Thinking…";
+
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        loadingOverlay.style.display = "flex";
+
+        fetch(CLIENT_ROUTE_PREFIX + "/ai_agent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: combined })
+        })
+        .then(res => res.json())
+        .then(data => {
+          data.response = (data.response || "").replace(/```html/g, "").replace(/```/g, "");
+          if (data.response.includes("<@AiResponse:")) {
+            handleRequestStatus(data.response);
+          } else {
+            const before = htmlInput.value.substring(0, selStart);
+            const after  = htmlInput.value.substring(selEnd);
+            htmlInput.value = before + data.response + after;
+            updatePreview();
+            refreshIframe();
+            htmlInput.setSelectionRange(selStart, selStart + data.response.length);
+          }
+        })
+        .catch(err => console.error("Chat error:", err))
+        .finally(() => {
+          loadingOverlay.style.display = "none";
+          chatInput.disabled = false;
+          chatSend.disabled = false;
+          chatInput.placeholder = "Ask AI…";
+          chatInput.focus();
+        });
+      }
+
+      chatSend.addEventListener("click", sendChat);
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
+      });
+    });
   </script>
   {%for js_file in js_files %}
     {% if js_file != 'global.js' %}
