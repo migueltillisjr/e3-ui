@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isHidden) {
       panel.classList.remove("opacity-0");
       panel.classList.add("opacity-100");
-      if (!loaded) fetchContacts();
+      fetchContacts();
     } else {
       panel.classList.remove("opacity-100");
       panel.classList.add("opacity-0");

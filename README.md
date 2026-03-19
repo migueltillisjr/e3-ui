@@ -30,16 +30,16 @@ uvicorn backend:app \
 
 ```shell
 # neverbounce agent
-python -m ai.agents.router "validate the first 2 contacts from the united states"
+python -m agents.router "validate the first 2 contacts from the united states"
 # nldb agent
-python -m ai.agents.router "Get all contacts"
-python -m ai.agents.router "get all contacts with email migueltillisjr@gmail.com"
+python -m agents.router "Get all contacts"
+python -m agents.router "get all contacts with email migueltillisjr@gmail.com"
 # mailgun_agent, send
-python -m ai.agents.NaturalLanguageEmailer_Mailgun_agent send
+python -m agents.NaturalLanguageEmailer_Mailgun_agent send
 # mailgun_agent, metrics
-python -m ai.agents.NaturalLanguageEmailer_Mailgun_agent metrics
+python -m agents.NaturalLanguageEmailer_Mailgun_agent metrics
 # nlemaildesigner agent
-python -m ai.agents.nlemaildesigner "Add bright colors <h1>visit Hawaii and learn how to teach</h2>"
+python -m agents.nlemaildesigner "Add bright colors <h1>visit Hawaii and learn how to teach</h2>"
 ```
 
 ### User Pools
