@@ -1,0 +1,51 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListAllTables",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:ListTables",
+        "dynamodb:DescribeTable"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ReadWriteSpecificTables",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Query",
+        "dynamodb:Scan",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:DescribeTable"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-west-1:509499992346:table/stripesubscriptions",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/user_settings",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/ai_prompts",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/chats",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/messages"
+      ]
+    },
+    {
+      "Sid": "AccessTableIndexes",
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Resource": [
+        "arn:aws:dynamodb:us-west-1:509499992346:table/stripesubscriptions/index/*",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/user_settings/index/*",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/ai_prompts/index/*",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/chats/index/*",
+        "arn:aws:dynamodb:us-west-1:509499992346:table/messages/index/*"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,274 @@
+**Objective**
+Generate a single, production-ready **HTML file (one file, no external assets)** that mimics the **look & feel** of an existing website while keeping content original (paraphrased). The page must feature two primary buttons and remember the user’s preference to launch the AI agent next time.
+
+**Inputs (variables):**
+
+* `{{SOURCE_URL}}` – the public website to **learn** visual style + voice from.
+* `{{AI_AGENT_URL}}` – destination for “Launch AI Agent”.
+* `{{SITE_URL}}` – destination for “Visit Site” (usually the same as `{{SOURCE_URL}}`).
+* `{{BRAND_NAME}}` – text label used in the eyebrow and footer (e.g., “Info Pioneer”).
+
+**Style & Branding (learned from {{SOURCE_URL}}):**
+
+1. **Extract & approximate brand tokens** from `{{SOURCE_URL}}`:
+
+   * Primary/secondary colors, background style (e.g., gradient, solid, subtle texture).
+   * Heading & body font families (or closest web-safe equivalents).
+   * Button corner radius, shadow depth, spacing rhythm, and general vibe (minimal, bold, glossy, etc.).
+2. **Do not copy proprietary images, logos, or trademarks.** Mimic the **style**, not the exact assets.
+3. Ensure **WCAG-friendly contrast**, visible focus states, and reduced-motion support.
+
+**Layout (required):**
+
+* Centered card/hero with:
+
+  * Eyebrow label: `{{BRAND_NAME}}`
+  * H1 headline (you may synthesize a concise, punchy line that matches the brand voice).
+  * Subheadline (1 short sentence, paraphrased from {{SOURCE_URL}} tone).
+* **Two large buttons side-by-side** (stack on mobile ≤640px):
+
+  * Left (accent): **Launch AI Agent** → `{{AI_AGENT_URL}}`
+  * Right (neutral): **Visit {{BRAND_NAME}}** → `{{SITE_URL}}`
+* **Brief summary** (2–4 sentences) **paraphrasing** what the source site offers (language + branding), under the buttons. No copy/paste; keep it original and concise.
+* Optional KPI chips: if the source communicates clear outcome metrics, include up to 3 compact chips; otherwise omit.
+* Footer with © year and a link to `{{SITE_URL}}`.
+
+**Behavior (must implement):**
+
+* When the user clicks **Launch AI Agent**, **store preference** in `localStorage` (key: `ip_launch_pref = "agent"`).
+* On return visits, if preference exists **and** no `?nopref=1` query param:
+
+  * Show a brief notice (polite ARIA status), then **auto-redirect** to `{{AI_AGENT_URL}}` (use `location.replace`).
+* Provide a **“Change preference”** link that clears the saved choice.
+* Keyboard and screen-reader friendly; visible focus rings.
+
+**Technical constraints:**
+
+* **One HTML file** only; embed `<style>` and `<script>` in the document.
+* No external fonts, CSS, or JS. Use system fonts or safe fallbacks if needed.
+* Use CSS Grid/Flex for layout; use `clamp()` for responsive type/spacing.
+* Respect `prefers-reduced-motion`.
+* Add meta tags: `theme-color`, `color-scheme`, and a short `description`.
+
+**Deliverable**
+Return **exactly one** HTML document. Use this structure and **inject the learned tokens** (colors, radii, shadows, typography) to reflect `{{SOURCE_URL}}`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{BRAND_NAME}} — Quick Launch</title>
+  <meta name="description" content="Launch the AI Agent or visit {{BRAND_NAME}}. Remembers your preference for next time." />
+  <meta name="theme-color" content="{{PRIMARY_THEME_COLOR}}" />
+  <meta name="color-scheme" content="dark light" />
+
+  <style>
+    :root{
+      /* ↓ Replace these tokens with values inferred from {{SOURCE_URL}} */
+      --bg: {{BG_COLOR}};
+      --bg-2: {{BG_ACCENT_OR_GRADIENT_BASE}};
+      --card: {{CARD_COLOR}};
+      --text: {{TEXT_COLOR}};
+      --muted: {{MUTED_TEXT_COLOR}};
+      --accent: {{ACCENT_COLOR}};
+      --ring: {{FOCUS_RING_COLOR}};
+      --radius: {{CORNER_RADIUS_PX}};
+      --shadow: {{ELEVATION_SHADOW}};
+      --shadow-hover: {{HOVER_SHADOW}};
+      --speed: 180ms;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--text);
+      font-family: {{HEADING_FONT_FALLBACK_STACK}}, {{BODY_FONT_FALLBACK_STACK}}, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+      background: radial-gradient(1200px 800px at 10% 10%, var(--bg-2) 0%, var(--bg) 40%, var(--bg) 100%), var(--bg);
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    .wrap{min-height:100dvh;display:grid;place-items:center;padding:6vh 20px;opacity:0;animation:fadeIn .6s ease forwards}
+    @keyframes fadeIn{to{opacity:1}}
+    @media (prefers-reduced-motion: reduce){.wrap{animation:none;opacity:1}}
+
+    .card{
+      width:100%;max-width:980px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)), var(--card);
+      border: 1px solid {{CARD_BORDER}};
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(20px, 5vw, 44px);
+      backdrop-filter: saturate(1.1) blur(2px);
+    }
+
+    .hero{text-align:center;margin-bottom:clamp(18px,3.5vw,28px)}
+    .eyebrow{
+      display:inline-block;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--muted);
+      border:1px solid {{EYEBROW_BORDER}};padding:6px 10px;border-radius:999px;margin-bottom:14px;user-select:none
+    }
+    h1{
+      font-family: {{HEADING_FONT_FALLBACK_STACK}}, ui-sans-serif, system-ui;
+      font-size: clamp(28px, 5vw, 46px); line-height:1.08; margin:0 0 8px; font-weight:800; letter-spacing:-.02em;
+    }
+    .sub{
+      font-size: clamp(16px, 2.2vw, 20px); color: var(--muted); margin: 0 auto; max-width: 58ch;
+    }
+
+    .notice{
+      display:none;margin:14px auto 0;background: {{NOTICE_BG}}; border:1px solid {{NOTICE_BORDER}};
+      color: {{NOTICE_TEXT}}; border-radius:12px; padding:10px 12px; font-size:14px; max-width:58ch; text-align:center
+    }
+    .notice a{color:inherit;text-decoration:underline dotted}
+
+    .cta-row{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,18px);margin:clamp(18px,3.2vw,28px) auto}
+    @media (max-width:640px){.cta-row{grid-template-columns:1fr}}
+
+    .btn{
+      position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;
+      padding:clamp(16px,2.4vw,20px) clamp(16px,3vw,24px);border-radius:calc(var(--radius) - 4px);
+      border:1px solid {{BTN_BORDER}}; background: {{BTN_BG}};
+      color: var(--text); text-decoration:none; font-weight:700; letter-spacing:.01em;
+      transition: transform var(--speed) ease, box-shadow var(--speed) ease, border-color var(--speed) ease, background var(--speed) ease;
+      box-shadow: var(--shadow); isolation:isolate; will-change: transform, box-shadow;
+    }
+    .btn:hover{transform:translateY(-2px) scale(1.01);box-shadow:var(--shadow-hover);border-color:{{BTN_BORDER_HOVER}};background:{{BTN_BG_HOVER}}}
+    .btn:active{transform:translateY(0) scale(.995)}
+    .btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--ring), var(--shadow)}
+    .btn svg{flex:0 0 auto}
+    .btn .label{line-height:1}
+
+    .btn--accent{
+      background: {{ACCENT_BTN_BG}}; border-color: {{ACCENT_BTN_BORDER}};
+      color: {{ACCENT_BTN_TEXT}};
+    }
+    .btn--accent:hover{background: {{ACCENT_BTN_BG_HOVER}}; border-color: {{ACCENT_BTN_BORDER_HOVER}};}
+
+    .kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:10px 0 4px;text-align:center}
+    @media (max-width:640px){.kpis{grid-template-columns:1fr}}
+    .kpis .kpi{background: {{KPI_BG}}; border:1px solid {{KPI_BORDER}}; border-radius:12px; padding:12px}
+    .kpi .big{font-size:clamp(20px,3.3vw,28px);font-weight:800}
+    .kpi .label{color:var(--muted);font-size:12px}
+
+    .summary{margin-top:clamp(12px,2.8vw,22px);line-height:1.6;color: {{SUMMARY_TEXT}}; font-size:clamp(14px,2vw,16px)}
+    .summary strong{color: {{SUMMARY_STRONG}}}
+
+    .footer{margin-top:22px;display:flex;justify-content:center;gap:14px;color:var(--muted);font-size:12px;opacity:.9;flex-wrap:wrap}
+    .footer a{color:inherit;text-decoration:none;border-bottom:1px dotted {{FOOTER_LINK_BORDER}}}
+    .footer a:hover{border-bottom-style:solid}
+  </style>
+</head>
+
+<body data-agent-url="{{AI_AGENT_URL}}">
+  <main class="wrap" role="main">
+    <section class="card" aria-label="Quick launch and overview">
+      <header class="hero">
+        <span class="eyebrow" aria-hidden="true">{{BRAND_NAME}}</span>
+        <h1>{{SYNTHESIZED_HEADLINE}}</h1>
+        <p class="sub">{{SYNTHESIZED_SUBHEAD}}</p>
+        <div id="pref-notice" class="notice" role="status" aria-live="polite"></div>
+      </header>
+
+      <div class="cta-row" role="group" aria-label="Primary actions">
+        <a id="launch-agent" class="btn btn--accent" href="#" rel="nofollow noopener" aria-label="Launch AI Agent">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l2.3 4.7 5.2.8-3.7 3.7.9 5.2L12 14.9 7.3 17.4l.9-5.2L4.5 8.5l5.2-.8L12 3z" stroke="currentColor" stroke-width="1.4"/></svg>
+          <span class="label">Launch AI Agent</span>
+        </a>
+
+        <a class="btn" href="{{SITE_URL}}" target="_blank" rel="noopener noreferrer" aria-label="Visit {{BRAND_NAME}} website (opens in a new tab)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h16M12 4v16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span class="label">Visit {{BRAND_NAME}}</span>
+        </a>
+      </div>
+
+      {{#if KPI_CHIPS}}
+      <div class="kpis" aria-label="Representative outcomes">
+        {{#each KPI_CHIPS}}
+          <div class="kpi"><div class="big">{{this.value}}</div><div class="label">{{this.label}}</div></div>
+        {{/each}}
+      </div>
+      {{/if}}
+
+      <div class="summary">
+        <strong>Brief summary:</strong>
+        {{PARAPHRASED_BRIEF_SUMMARY}}
+      </div>
+
+      <footer class="footer" aria-label="Attribution">
+        <span>© <time datetime="{{CURRENT_YEAR}}">{{CURRENT_YEAR}}</time> {{BRAND_NAME}}</span>
+        <span aria-hidden="true">•</span>
+        <a href="{{SITE_URL}}" target="_blank" rel="noopener noreferrer">{{SITE_URL}}</a>
+        <span aria-hidden="true">•</span>
+        <a id="clear-pref" href="#" aria-label="Change preference">Change preference</a>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const PREF_KEY = "ip_launch_pref";
+      const PREF_TS  = "ip_launch_pref_ts";
+      const agentUrl = document.body.getAttribute("data-agent-url") || "#";
+      const bypass   = new URLSearchParams(location.search).has("nopref");
+      const noticeEl = document.getElementById("pref-notice");
+      const launchEl = document.getElementById("launch-agent");
+      const clearEl  = document.getElementById("clear-pref");
+
+      const pref = localStorage.getItem(PREF_KEY);
+      if (pref === "agent" && !bypass && agentUrl && agentUrl !== "#") {
+        if (noticeEl) {
+          noticeEl.innerHTML = 'Using your saved preference: opening AI Agent. <a href="?nopref=1">Visit site instead</a>';
+          noticeEl.style.display = "block";
+        }
+        const delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 50 : 300;
+        setTimeout(() => { window.location.replace(agentUrl); }, delay);
+      } else if (pref === "agent" && bypass) {
+        if (noticeEl) {
+          noticeEl.textContent = "Saved preference detected (Launch AI Agent), but bypassed for this visit.";
+          noticeEl.style.display = "inline-block";
+        }
+      }
+
+      launchEl?.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (!agentUrl || agentUrl === "#") return;
+        try {
+          localStorage.setItem(PREF_KEY, "agent");
+          localStorage.setItem(PREF_TS, String(Date.now()));
+        } catch (_) {}
+        window.location.href = agentUrl;
+      });
+
+      clearEl?.addEventListener("click", (e) => {
+        e.preventDefault();
+        try {
+          localStorage.removeItem(PREF_KEY);
+          localStorage.removeItem(PREF_TS);
+        } catch (_) {}
+        if (noticeEl) {
+          noticeEl.textContent = "Preference cleared. You can choose again.";
+          noticeEl.style.display = "inline-block";
+        }
+        launchEl?.focus();
+        if (new URLSearchParams(location.search).has("nopref")) {
+          const url = new URL(location.href); url.searchParams.delete("nopref"); history.replaceState(null, "", url);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+```
+
+**Rules & Safeguards**
+
+* Paraphrase; **don’t copy** trademarked text/assets from `{{SOURCE_URL}}`.
+* Keep everything in one file; no network calls.
+* Validate color contrast; maintain accessible focus states.
+* If fonts aren’t available, **fallback** to system stacks.
+
+**Acceptance Criteria**
+
+1. Visual style approximates `{{SOURCE_URL}}` via extracted tokens.
+2. Buttons + summary match the spec; summary is original wording.
+3. Preference stored on “Launch AI Agent”; auto-redirects on return (unless `?nopref=1`).
+4. Single self-contained HTML output; no external deps; responsive and accessible.

@@ -1,0 +1,108 @@
+You are an expert Python backend engineer and Nylas Scheduler API integrator.
+
+Goal:
+Generate a fully working Python Flask app with routes that integrate with the Nylas v3 Scheduler API:
+- API docs: https://developer.nylas.com/docs/api/v3/scheduler/
+
+The Flask app must:
+
+1) Use environment variables for config
+   - NYLAS_API_KEY
+   - NYLAS_API_BASE_URL (default: https://api.us.nylas.com if not set)
+   - NYLAS_SCHEDULER_ID or any required identifier (e.g. configuration_id, booking_calendar_id, session_id, etc. — use whatever is appropriate based on the Scheduler docs)
+   - Optional: PORT
+
+2) Dependencies
+   - flask
+   - requests
+   - python-dotenv (optional, just show how to load .env in development)
+
+3) Implement a route to RECEIVE a webhook-style JSON request to create a booking
+
+   - Route: POST /api/schedule
+   - Content-Type: application/json
+   - Request body example:
+     {
+       "date": "2025-11-20",           // YYYY-MM-DD
+       "start_time": "13:00",         // 24h format, local time of organizer
+       "duration_hours": 4,           // integer, 4-hour block
+       "timezone": "America/Los_Angeles"  // IANA tz string
+     }
+
+   Behavior:
+   - Validate input (date, time, duration_hours, timezone).
+   - Convert the date + time + timezone into the appropriate timestamps for the Nylas Scheduler Availability request. Use the correct time format per the docs.
+   - Define the time window as a 4-hour range starting at the requested start_time on that date.
+     For example:
+       requested start = 13:00
+       requested end   = 17:00  (start + duration_hours)
+   - Call the appropriate Nylas v3 Scheduler availability endpoint to check if this 4-hour block is free for the organizer’s calendar.
+     - Use Nylas session / configuration / scheduler ID as required by the docs.
+     - Use a reasonable meeting duration (e.g., 240 minutes) and interval as needed, based on the availability API requirements.
+   - Inspect the response:
+     - If the requested 4-hour window is fully available (no conflicts), then:
+       - Call the Nylas v3 Scheduler booking endpoint to create a booking for that exact time range.
+       - Include any required fields (title, participant email, organizer, etc.) using placeholders or sample values if necessary.
+       - Return HTTP 201 with JSON:
+         {
+           "status": "success",
+           "message": "Slot booked",
+           "booking_id": "<nylas_booking_id>",
+           "start_time": "<ISO or timestamp>",
+           "end_time": "<ISO or timestamp>"
+         }
+     - If the time range is not fully available:
+       - Return HTTP 409 with JSON:
+         {
+           "status": "unavailable",
+           "message": "Requested time slot is not available"
+         }
+
+   - Include robust error handling:
+     - If the Nylas API returns an error, log it and return HTTP 502 with an error message.
+     - If the request body is invalid, return HTTP 400 with a useful error description.
+
+4) Implement a route to CHECK current schedules (existing bookings)
+
+   - Route: GET /api/schedules
+   - Query params:
+     - optional start_date, end_date (YYYY-MM-DD) to filter range
+   - Behavior:
+     - Call the appropriate Nylas Scheduler / bookings endpoint to list bookings for the configured scheduler/configuration/calendar.
+     - If start_date / end_date are provided, convert them to the correct time format and filter results.
+     - Return JSON in a simple normalized format, for example:
+       {
+         "status": "success",
+         "bookings": [
+           {
+             "booking_id": "...",
+             "title": "...",
+             "start_time": "...",
+             "end_time": "...",
+             "timezone": "...",
+             "organizer_email": "...",
+             "guest_email": "..."
+           },
+           ...
+         ]
+       }
+
+5) General code quality requirements
+
+   - Use Flask blueprints or a simple single-file app with clear structure.
+   - Include a `create_app()` factory OR a simple `if __name__ == "__main__": app.run(...)` block.
+   - Add basic logging for:
+     - Incoming requests
+     - Calls to Nylas (URL + status code, not including secrets)
+     - Errors and exceptions
+   - Use type hints where helpful.
+   - Separate “Nylas client” logic into helper functions where possible, e.g.:
+       - get_availability(...)
+       - create_booking(...)
+       - list_bookings(...)
+   - Do NOT hardcode secrets; always read from environment variables.
+   - Include comments explaining each major step.
+
+Output format:
+- Return ONLY the complete Python code for the Flask app in one file (no explanations, no markdown).
+- The code should be ready to run after environment variables are set and dependencies are installed.

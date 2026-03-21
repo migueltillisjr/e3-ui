@@ -1,0 +1,23 @@
+[Unit]
+Description=E3 Uvicorn FastAPI App
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+
+WorkingDirectory=/opt/e3-storage/e3/e3-ui
+
+ExecStart=/opt/e3-storage/e3/e3-ui/.e3/bin/uvicorn backend.main:app \
+  --host 0.0.0.0 \
+  --port 443 \
+  --reload \
+  --ssl-keyfile=/opt/e3-storage/e3/e3-ui/backend/security/private.server.key \
+  --ssl-certfile=/opt/e3-storage/e3/e3-ui/backend/security/server.crt \
+  --log-level debug
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

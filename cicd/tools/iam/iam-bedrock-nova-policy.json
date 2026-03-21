@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBedrockNovaModels",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:Invoke*",
+        "bedrock:List*",
+        "bedrock:Get*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowListModels",
+      "Effect": "Allow",
+      "Action": [
+        "bedrock:ListFoundationModels",
+        "bedrock:GetFoundationModel"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

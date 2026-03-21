@@ -1,0 +1,101 @@
+# BackupCEO — Site Digest
+
+> Source domain: `backupceo.com` • Crawl date: 2025-10-31 • Language: en
+
+---
+
+## Site Meta
+- **Brand**: BackupCEO. (https://backupceo.com)  
+- **Tagline (home hero)**: “Empowering CEOs to see new possibilities, overcome blind spots, and enjoy the journey.”  
+- **Primary CTA**: “Let’s Talk”.  
+- **Nav (typical footer menu)**: Home · About Me · What I Do (Leadership Growth; Culture & Communication; Strategy & Systems) · Case Studies · Testimonials · Blog · Newsletter · Get in Touch.
+
+## Contact
+- **Phone**: +1 - 480-299-0633  
+- **Email**: john@backupceo.com  
+- **Contact page**: `/get-in-touch/` (form + phone + email).
+
+## Home — Value Proposition
+**Headline/Promise**  
+Helps CEOs take their businesses—and themselves—to new heights; support increases motivation, reveals hidden opportunities, and restores focus to what leaders enjoy most.
+
+## What I Do (Services Overview)
+- **Designing systems to support growth and long-term success**; takes on essential strategy/system design so CEOs can focus on what they love.
+
+### Service: Leadership Growth
+- **Outcome**: Lead with confidence, clarity and authenticity; imagine a larger future with a plan that accounts for risks.
+
+### Service: Culture & Communication
+- **Outcome**: Build a culture that aligns, motivates, and connects; safe space to grow and enjoy the journey more.
+- **Service page summary**: Free leaders from daily overwhelm, streamline operations, create a culture of trust and efficiency.
+
+### Service: Strategy & Systems
+- **Framing**: Seeing beyond today’s challenges demands clarity, strategy, courage to think bigger.
+- **Outcome**: Uncover hidden opportunities, identify risks, create a future-driven vision that empowers bold growth.
+
+## Journey/Method Themes (condensed from site copy)
+- From overwhelmed → in command (clarity, focus, control)  
+- Reveal blind spots & opportunities; lead boldly with strategic action; offload the noise; build systems; create momentum and results.
+
+## Testimonials (examples)
+- **CEO, Eyewear Company**: Energy-draining tasks removed; enjoyment in work restored.  
+- **CEO, Mental Health Practice**: Sessions are eye-opening; challenged to lead better.  
+- **CEO, Wellness Company**: Thriving with guidance; feels heard; growing.
+
+## Newsletter
+- **Section title**: “Start Your CEO Success Journey.”  
+- **Offer**: Subscribe now and get your first leadership tool today.
+
+## Blog (sample posts)
+- **Why Every CEO Needs a Backup** (Jan 10, 2025): Leaders need a trusted partner to provide fresh perspectives, challenge blind spots, and help carry the load to avoid burnout and sustain success.  
+- **How to Lead Better by Doing Less** (Jan 10, 2025): Focus on high-impact work; delegate the rest; build systems; reduce decision fatigue. Includes an actionable task triage exercise.  
+- **Blog index note**: The blog emphasizes prioritization, delegation, and clarity to increase impact.
+
+## About Me (Author/Guide)
+- **Mission**: Help CEOs unlock full potential, transform businesses, embrace leadership with clarity and confidence; decades of experience guiding leaders; aims to be a trusted partner.
+
+## Social & Footer Notes
+- **Footer presence**: X, Facebook, LinkedIn, Instagram links exposed in header/footer shells; standard copyright and a “Website by Glass Mountains” credit.
+
+---
+
+## RAG Q&A Snippets (canonicalized)
+**Q: What is BackupCEO?**  
+A: A leadership and strategy partner that helps CEOs gain clarity, uncover blind spots, design systems, and enjoy leading again.
+
+**Q: Which services are offered?**  
+A: Leadership Growth, Culture & Communication, Strategy & Systems (with emphasis on clarity, alignment, and future-driven growth).
+
+**Q: How can I contact BackupCEO?**  
+A: Phone +1-480-299-0633; Email john@backupceo.com; contact form at `/get-in-touch/`.
+
+**Q: What outcomes can a CEO expect?**  
+A: Reduced overwhelm, clearer strategy, better decision-making, aligned culture, and systems that enable focus on high-impact work.
+
+**Q: Is there a newsletter? What do I get?**  
+A: Yes—“Start Your CEO Success Journey.” Sign-up promises your first leadership tool upon subscribing.
+
+---
+
+## Entities (for retrieval fields)
+- **Organization**: BackupCEO.  
+- **Person (site principal)**: John (as inferred from email).  
+- **Contact**: +1-480-299-0633 · john@backupceo.com · `/get-in-touch/`.  
+- **Service Categories**: Leadership Growth; Culture & Communication; Strategy & Systems.  
+- **Content Types**: Home/Services/About/Case Studies/Testimonials/Blog/Newsletter/Contact.
+
+---
+
+## JSONL (optional import)
+```jsonl
+{"url":"https://backupceo.com/","type":"home","title":"Empowering CEOs to Lead with Confidence","tags":["leadership","strategy","systems"],"summary":"Helps CEOs see new possibilities, overcome blind spots, and enjoy the journey.","cta":"Let's Talk","sections":["value_proposition","services_overview"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/what-i-do/","type":"services","title":"What I Do","categories":["Leadership Growth","Culture & Communication","Strategy & Systems"],"summary":"Designs systems for growth; takes on essential strategy/systems so CEOs can focus on what they love.","extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/leadership-growth/","type":"service","title":"Leadership Growth","outcomes":["confidence","clarity","authenticity","risk-aware planning"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/culture-and-communication/","type":"service","title":"Culture & Communication","outcomes":["alignment","motivation","trust","efficiency"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/strategy-and-systems/","type":"service","title":"Strategy & Systems","outcomes":["opportunity discovery","risk identification","future-driven vision"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/blog/","type":"blog-index","title":"Blog","highlights":["How to Lead Better by Doing Less","Why Every CEO Needs a Backup"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/how-to-lead-better-by-doing-less/","type":"post","title":"How to Lead Better by Doing Less","date":"2025-01-10","bullets":["delegate non-CEO tasks","build supporting systems","protect time for strategy"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/why-every-ceo-needs-a-backup/","type":"post","title":"Why Every CEO Needs a Backup","date":"2025-01-10","bullets":["leaders need trusted partners","challenge blind spots","prevent burnout"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/testimonials/","type":"testimonials","items":["CEO, Eyewear Company","CEO, Mental Health Practice","CEO, Wellness Company"],"themes":["removes energy drains","eye-opening sessions","thriving with guidance"],"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/get-in-touch/","type":"contact","phone":"+14802990633","email":"john@backupceo.com","has_form":true,"extracted_on":"2025-10-31"}
+{"url":"https://backupceo.com/newsletter/","type":"newsletter","title":"Start Your CEO Success Journey","offer":"first leadership tool on subscribe","extracted_on":"2025-10-31"}

@@ -1,0 +1,3 @@
+inspect this site and put into a well organized markup document for RAG purposes: {{ WEBSITE_URL }}
+
+put into .md and return .md file

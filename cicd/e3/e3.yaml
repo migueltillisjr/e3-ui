@@ -1,0 +1,36 @@
+# === Load Balancer & Region Settings ===
+region: us-west-1
+lb_arn: arn:aws:elasticloadbalancing:us-west-1:509499992346:loadbalancer/app/e3-ldmg-org-alb/25fcd9389a3e45ee
+existing_tg_name: e3-ldmg-org-alb-tg
+listener_port: 443
+
+# === New Rule & Target Group ===
+new_path: /e3*
+new_host: e3.ldmg.org
+new_tg_name: e3-ldmg-org-alb-tg
+vpc_id: vpc-0fe7e5714a668ee8e
+
+# Target group protocol and health check
+target_protocol: HTTPS
+target_port: 443
+health_path: /e3/health/ping
+matcher: 200
+target_type: instance
+
+# === Optional Automatic Target Registration ===
+targets:
+  instance_ids:
+    - i-0304820d45db53734
+
+# Security Group Rules
+target_sg_id: sg-0769ec50b6d28f36f   # receives the rule
+source_sg_id: sg-05b967f6b14eb14cb  # allowed to connect
+protocol: tcp
+description: "App SG to Backend SG"
+app_name: e3
+
+# === Code Deploy Settings ===
+repo: migueltillisjr/e3-ui
+server: deploy-web5.infopnr.com
+deploy_base: /opt/e3-storage
+e3_repo: migueltillisjr/e3

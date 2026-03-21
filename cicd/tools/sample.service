@@ -1,0 +1,26 @@
+[Unit]
+Description=Uvicorn FastAPI App
+After=network.target
+
+[Service]
+# User and group to run the service as (choose your app user, e.g. ubuntu)
+User=ubuntu
+Group=ubuntu
+
+# Working directory of your app
+WorkingDirectory=/opt/web5/app_name/web5.infopnr.com
+
+# Path to your virtualenv's uvicorn (if using venv), otherwise just `uvicorn`
+ExecStart=/opt/web5/app_name/web5.infopnr.com/.app_name/bin/uvicorn backend.main:app \
+  --host 0.0.0.0 \
+  --port target_port \
+  --reload \
+  --ssl-keyfile=/opt/web5/app_name/web5.infopnr.com/backend/security/private.server.key \
+  --ssl-certfile=/opt/web5/app_name/web5.infopnr.com/backend/security/server.crt
+  --log-level debug
+
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
