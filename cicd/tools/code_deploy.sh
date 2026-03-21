@@ -34,6 +34,7 @@ echo "📦 Checking if code needs to be pulled..."
 if run_remote "[ -d $deploy_base/$app/$repo_name/.git ]"; then
   echo "📦 Code directory exists, fetching latest changes..."
   run_remote "
+    git config --global --add safe.directory $deploy_base/$app/$repo_name
     cd $deploy_base/$app/$repo_name
     git fetch --all --tags --force
 
@@ -72,6 +73,7 @@ if [ -n "${e3_repo:-}" ]; then
   if run_remote "[ -d $deploy_base/$e3_repo_name/.git ]"; then
     echo "📦 e3 repo exists, pulling latest..."
     run_remote "
+      git config --global --add safe.directory $deploy_base/$e3_repo_name
       cd $deploy_base/$e3_repo_name
       git fetch --all --tags --force
       git checkout main -f
@@ -83,6 +85,7 @@ if [ -n "${e3_repo:-}" ]; then
       cd $deploy_base
       rm -rf '$e3_repo_name'
       git clone -- git@github.com:$e3_repo.git
+      git config --global --add safe.directory $deploy_base/$e3_repo_name
     "
   fi
   echo "✅ e3 deployed to $deploy_base/$e3_repo_name"
