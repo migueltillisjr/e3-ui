@@ -1,4 +1,0 @@
-User Prompt:
-get all contacts
-
-Context:

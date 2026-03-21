@@ -1,0 +1,15 @@
+{
+    "design_name": "email_design1.html",
+    "subject": "This is miguels email",
+    "preview": "yoooo man join us",
+    "from": "Jennie < jennie@e3.hawaiiapsi.org >",
+    "to": [
+        [
+            "Miguel",
+            "migueltillisjr@gmail.com"
+        ]
+    ],
+    "html_email_design": "https://e3-designs.s3.amazonaws.com/email_design1.html",
+    "o:tracking": "yes",
+    "send_date": "2026-03-21"
+}

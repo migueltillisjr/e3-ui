@@ -1,21 +1,41 @@
-ip="13.52.178.187"
-echo "removing old release..."
-rm e3-release.zip 2&> /dev/null
-ssh -i ~/.ssh/11222024.pem ubuntu@$ip "sudo rm /opt/e3-release.zip 2&> /dev/null"
-ssh -i ~/.ssh/11222024.pem ubuntu@$ip "sudo rm -rf /opt/e3 2&> /dev/null"
-echo "Creating new release..."
-git archive -o e3-release.zip HEAD
-echo "Deploying new release..."
-scp -r -i ~/.ssh/11222024.pem e3-release.zip ubuntu@$ip:/home/ubuntu/
-ssh -i ~/.ssh/11222024.pem ubuntu@$ip "sudo mv /home/ubuntu/e3-release.zip /opt/"
-ssh -i ~/.ssh/11222024.pem ubuntu@$ip "cd /opt;mkdir -p /opt/e3;sudo unzip /opt/e3-release.zip -d /opt/e3"
+#!/bin/bash
+# Deploy e3-ui to EC2, then pull and deploy e3 alongside it
+set -euo pipefail
 
-# ssh -i ~/.ssh/11222024.pem ubuntu@$ip "ls"
+KEY="~/.ssh/11222024.pem"
+IP="18.144.177.147"
+SSH="ssh -i $KEY ubuntu@$IP"
+SCP="scp -i $KEY"
 
-# scp -r -i ~/.ssh/11222024.pem migueltillisjr.com/ ubuntu@$ip:/home/ubuntu/
+# --- Deploy e3-ui ---
+echo "=== Deploying e3-ui ==="
 
-#   ssh -i ~/.ssh/11222024.pem ubuntu@$ip \
-#   "sudo mv /home/ubuntu/migueltillisjr.com/* /var/www/html/"
+echo "Removing old e3-ui release..."
+rm -f e3-ui-release.zip
+$SSH "sudo rm -f /opt/e3-ui-release.zip"
+$SSH "sudo rm -rf /opt/e3-ui"
 
+echo "Creating new e3-ui release..."
+git archive -o e3-ui-release.zip HEAD
 
-# ssh -i ~/.ssh/11222024.pem 54.183.247.192
+echo "Uploading e3-ui release..."
+$SCP e3-ui-release.zip ubuntu@$IP:/home/ubuntu/
+$SSH "sudo mv /home/ubuntu/e3-ui-release.zip /opt/"
+
+echo "Extracting e3-ui..."
+$SSH "sudo mkdir -p /opt/e3-ui; sudo unzip -o /opt/e3-ui-release.zip -d /opt/e3-ui"
+
+# --- Deploy e3 alongside ---
+echo ""
+echo "=== Deploying e3 alongside ==="
+
+# Upload the deploy-e3.sh script and run it on the server
+$SCP scripts/deploy-e3.sh ubuntu@$IP:/home/ubuntu/deploy-e3.sh
+$SSH "chmod +x /home/ubuntu/deploy-e3.sh; /home/ubuntu/deploy-e3.sh"
+
+echo ""
+echo "=== Restarting service ==="
+$SSH "sudo systemctl restart uvicorn.service"
+
+echo ""
+echo "=== Deploy complete ==="
