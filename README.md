@@ -6,6 +6,7 @@ Contact management, email design, campaign delivery, and email validation — al
 
 | Component | Description |
 |-----------|-------------|
+| `.opencode/` | Opencode agent settings |
 | `backend/` | FastAPI app — API routes, OAuth (Cognito + Google), Pydantic models |
 | `frontend/` | Vanilla JS + CKEditor email editor UI |
 | `agents/` | LangChain AI agents (NL→SQL, NeverBounce, Mailgun, HTML design) |
