@@ -102,6 +102,17 @@ const S3_BUCKET_NAME = "e3-designs"
 const UI_PORT = 443
 ```
 
+## OpenCode Agent
+
+The project includes an [OpenCode](https://opencode.ai) agent config at `.opencode/agents/e3.md`. It gives OpenCode project-aware context so it understands the agent structure, symlinks, and conventions when you use it for development.
+
+- Model: `us.amazon.nova-pro-v1:0`
+- Mode: subagent
+- Tools: write, bash
+
+The agent is pre-configured to read `AGENTS.md` and per-agent `CONTEXT.md` files before making changes.
+
+
 ## Production Deployment
 
 The `cicd/` directory handles automated deployment. For manual setup:
@@ -130,12 +141,3 @@ The `cicd/` directory handles automated deployment. For manual setup:
 - `CHANGELOG.md` — Release history
 - Each agent directory has its own `CONTEXT.md`
 
-## OpenCode Agent
-
-The project includes an [OpenCode](https://opencode.ai) agent config at `.opencode/agents/e3.md`. It gives OpenCode project-aware context so it understands the agent structure, symlinks, and conventions when you use it for development.
-
-- Model: `us.amazon.nova-pro-v1:0`
-- Mode: subagent
-- Tools: write, bash
-
-The agent is pre-configured to read `AGENTS.md` and per-agent `CONTEXT.md` files before making changes.
