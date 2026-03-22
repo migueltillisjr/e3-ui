@@ -1,10 +1,11 @@
-!.opencode
 .e3tb
-agents/
+node_modules
+/agents/
 notes.txt
 __pycache__/
 .*
 !.gitignore
+!.opencode
 e3-release.zip
 # Byte-compiled / optimized / DLL files
 __pycache__/
