@@ -95,6 +95,12 @@ if [ -n "${e3_repo:-}" ]; then
     "
   fi
   echo "✅ e3 deployed to $e3_deploy_dir"
+
+  # Create symlink so e3-ui can import agents from e3
+  echo "🔗 Linking agents from e3 into e3-ui..."
+  run_remote "
+    ln -sfn $e3_deploy_dir/agents $deploy_base/$app/$repo_name/agents
+  "
 fi
 
 # --- Step 2: Install dependencies ---
