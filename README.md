@@ -18,7 +18,7 @@ Contact management, email design, campaign delivery, and email validation — al
 
 - Python 3.12+
 - API keys for: AWS Bedrock, Mailgun, NeverBounce
-- SSL cert + key in `backend/security/`
+- SSL cert + key in `backend/security/private.server.key`
 
 ## Quick Start
 
