@@ -34,3 +34,5 @@ repo: migueltillisjr/e3-ui
 server: deploy-web5.infopnr.com
 deploy_base: /opt/e3-storage
 e3_repo: migueltillisjr/e3
+e3_repo_ssh_key: ~/.ssh/bingo
+e3_repo_deploy_dir: /opt/e3-storage/e3-backend

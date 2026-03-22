@@ -13,6 +13,8 @@ if [ -f "$app/$app.yaml" ]; then
   repo=$(grep '^repo:' "$app/$app.yaml" | awk '{print $2}' || echo "")
   deploy_base=$(grep '^deploy_base:' "$app/$app.yaml" | awk '{print $2}' || echo "")
   e3_repo=$(grep '^e3_repo:' "$app/$app.yaml" | awk '{print $2}' || echo "")
+  e3_repo_ssh_key=$(grep '^e3_repo_ssh_key:' "$app/$app.yaml" | awk '{print $2}' || echo "")
+  e3_repo_deploy_dir=$(grep '^e3_repo_deploy_dir:' "$app/$app.yaml" | awk '{print $2}' || echo "")
 fi
 
 # Defaults for web5-based apps
@@ -62,33 +64,37 @@ else
      cd $repo_name && \
      git fetch --all --tags --force && \
      git checkout '$release' -f)
+    echo 'Clone complete. Contents:'
+    ls -la '$deploy_base/$app/'
   "
 fi
 
 # --- Step 1b: Deploy e3 alongside (if e3_repo is configured) ---
 if [ -n "${e3_repo:-}" ]; then
   e3_repo_name=$(basename "$e3_repo")
+  e3_deploy_dir=${e3_repo_deploy_dir:-"$deploy_base/$e3_repo_name"}
   echo ""
-  echo "📦 Deploying $e3_repo_name alongside $app..."
-  if run_remote "[ -d $deploy_base/$e3_repo_name/.git ]"; then
-    echo "📦 e3 repo exists, pulling latest..."
+  echo "📦 Deploying $e3_repo_name alongside $app ($repo_name)..."
+  if run_remote "[ -d $e3_deploy_dir/.git ]"; then
+    echo "📦 e3 repo exists, pulling latest $e3_repo_name..."
     run_remote "
-      git config --global --add safe.directory $deploy_base/$e3_repo_name
-      cd $deploy_base/$e3_repo_name
+      export GIT_SSH_COMMAND='ssh -i $e3_repo_ssh_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new'
+      git config --global --add safe.directory $e3_deploy_dir
+      cd $e3_deploy_dir
       git fetch --all --tags --force
       git checkout main -f
       git reset --hard origin/main
     "
   else
-    echo "📦 Cloning e3 repo..."
+    echo "📦 Cloning $e3_repo_name repo..."
     run_remote "
-      cd $deploy_base
-      rm -rf '$e3_repo_name'
-      git clone -- git@github.com:$e3_repo.git
-      git config --global --add safe.directory $deploy_base/$e3_repo_name
+      export GIT_SSH_COMMAND='ssh -i $e3_repo_ssh_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new'
+      rm -rf '$e3_deploy_dir'
+      git clone -- git@github.com:$e3_repo.git '$e3_deploy_dir'
+      git config --global --add safe.directory $e3_deploy_dir
     "
   fi
-  echo "✅ e3 deployed to $deploy_base/$e3_repo_name"
+  echo "✅ e3 deployed to $e3_deploy_dir"
 fi
 
 # --- Step 2: Install dependencies ---
@@ -108,7 +114,7 @@ run_remote "
 
 # --- Step 3: Copy .env file ---
 echo "📄 Copying .env..."
-scp -i "$key" -o StrictHostKeyChecking=accept-new "cicd/$app/env" "ubuntu@$server:$deploy_base/$app/$repo_name/.env"
+scp -i "$key" -o StrictHostKeyChecking=accept-new "$app/env" "ubuntu@$server:$deploy_base/$app/$repo_name/.env"
 # Update .env file with the new app route prefix path
 ssh -i "$key" ubuntu@$server "
   sed -i \
@@ -118,7 +124,7 @@ ssh -i "$key" ubuntu@$server "
 "
 
 echo "📄 Copying js global config..."
-scp -i "$key" -o StrictHostKeyChecking=accept-new "cicd/$app/global.js" "ubuntu@$server:$deploy_base/$app/$repo_name/frontend/js/global.js"
+scp -i "$key" -o StrictHostKeyChecking=accept-new "$app/global.js" "ubuntu@$server:$deploy_base/$app/$repo_name/frontend/js/global.js"
 
 echo '🔒 Copying certs...'
 for cert in fullchain.pem server.crt private.server.key; do
@@ -130,10 +136,10 @@ for cert in fullchain.pem server.crt private.server.key; do
 done
 
 echo '⚙️ Deploying systemd service...'
-if [ -f "cicd/$app/$app.service" ]; then
+if [ -f "$app/$app.service" ]; then
   # Use pre-built service file if it exists (e.g. e3 with custom paths)
-  echo "Using pre-built service file: cicd/$app/$app.service"
-  scp -i "$key" -o StrictHostKeyChecking=accept-new "cicd/$app/$app.service" "ubuntu@$server:/home/ubuntu/$app.service"
+  echo "Using pre-built service file: $app/$app.service"
+  scp -i "$key" -o StrictHostKeyChecking=accept-new "$app/$app.service" "ubuntu@$server:/home/ubuntu/$app.service"
 else
   # Generate from template for web5-based apps
   cp "tools/sample.service" "$app/$app.service"
