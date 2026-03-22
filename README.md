@@ -1,13 +1,42 @@
-# e3
+# E3 — AI-Powered Email Marketing Platform
+
+Contact management, email design, campaign delivery, and email validation — all driven by natural language through AI agents.
+
+## What's Inside
+
+| Component | Description |
+|-----------|-------------|
+| `backend/` | FastAPI app — API routes, OAuth (Cognito + Google), Pydantic models |
+| `frontend/` | Vanilla JS + CKEditor email editor UI |
+| `agents/` | LangChain AI agents (NL→SQL, NeverBounce, Mailgun, HTML design) |
+| `storage/` | Runtime data — SQLite DB, contacts, email designs, metrics |
+| `cicd/` | Deployment pipeline and config |
+| `scripts/` | Dev/ops utilities |
+
+## Prerequisites
+
+- Python 3.12+
+- API keys for: AWS Bedrock, Mailgun, NeverBounce
+- SSL cert + key in `backend/security/`
 
 ## Quick Start
 
 ```shell
-python --version #Python 3.12.3
+# 1. Create and activate virtual environment
 python -m venv .e3
-. .e3/bin/activate
+source .e3/bin/activate
+
+# 2. Install dependencies
 pip install -r requirements.txt
+
+# 3. Configure environment
+cp env.example .env
+# Edit .env with your API keys and config
+
+# 4. Initialize the database
 ./scripts/data-prep.sh
+
+# 5. Start the server
 uvicorn backend:app \
   --host 0.0.0.0 \
   --port 443 \
@@ -16,142 +45,93 @@ uvicorn backend:app \
   --ssl-certfile=backend/security/server.crt
 ```
 
+The app will be available at `https://localhost:443/e3/`
 
-**Required Integrated Services
+## Using the AI Agents (CLI)
 
-- Neverbounce
-- MailGun
-- Aws Bedrock
-- ALB/NLB, with high priority rule exceptions for app context paths
-- s3 buckets w/ adequate perms
-- Instance profile with access to respective buckets and Bedrock permissions
-- 
-
+All agents are accessed through the router via natural language:
 
 ```shell
-#e3-ui % tree -L 2 -I '__pycache__|.git|.pytest_cache|.DS_Store|.e3-ui|node_modules|*.log'
-# neverbounce agent
+# Query contacts
+python -m agents.router "Get all contacts from Hawaii"
+
+# Validate emails via NeverBounce
 python -m agents.router "validate the first 2 contacts from the united states"
-python -m agents.router "Get all contacts"
-python -m agents.router "get all contacts with email migueltillisjr@gmail.com"
-# mailgun_agent, send
-python -m agents.NaturalLanguageEmailer_Mailgun_agent send
-# mailgun_agent, metrics
-python -m agents.NaturalLanguageEmailer_Mailgun_agent metrics
-# nlemaildesigner agent
-python -m agents.nlemaildesigner "Add bright colors <h1>visit Hawaii and learn how to teach</h2>"
-python -m agents.nlemaildesigner "validate all contacts from Hawaii"
+
+# Edit HTML email snippets
+python -m agents.router "Add bright colors <h1>visit Hawaii</h1>"
 ```
 
-### User Pools
-- Cognito: https://us-west-1.console.aws.amazon.com/cognito/v2/idp/user-pools/us-west-1_KXIJRIWFQ/applications/app-clients/p4h151ntuikuboridi2austo7/login-pages?region=us-west-1
+Direct agent access:
 
-- Google: https://console.cloud.google.com/auth/clients?project=ampacbusinesscapital
-
-### Frontend - Variable config - frontend/js/global.js
-```
-const SERVER_ROUTE_PREFIX=`/e3`
-const CLIENT_ROUTE_PREFIX=`/e3`
-const S3_BUCKET_NAME="e3-designs"
-const UI_PORT=443
-```
-
-### Backend - Variable config - .env
 ```shell
-UI_PASSWORD=''
-UI_USER="e3"
-RUN_CMD="uvicorn backend:app --host localhost --port 443 --reload"
-APP_UI="http://localhost:443/e3/login"
-TAVILY_API_KEY=
-AWS_REGION="us-west-2"
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-PORT="443"
-DB_USER="nldbpostgres"
-DB_PASS="nldbpostgres"
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_NAME="nldbpostgres"
-DB_URL="sqlite:///backend/storage/database/crm.db"
-AWS_ACCOUNT_ID=
-MAILGUN_API_KEY=
-NEVERBOUNCE_CUSTOM_APP_API_KEY=
-NEVERBOUNCE_DOMAIN=
-MODEL="us.amazon.nova-pro-v1:0"
-PROVIDER="amazon"
-SERVER_ROUTE_PREFIX="/e3"
-CLIENT_ROUTE_PREFIX="/e3"
+# Send an email campaign
+python -m agents.NaturalLanguageEmailer_Mailgun_agent send
 
-LANGSMITH_TRACING="true"
-LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
-LANGSMITH_API_KEY=
-LANGSMITH_PROJECT="e3"
-
-UPLOAD_DIR="backend/storage/serve"
-EMAIL_DESIGN_DIR="backend/storage/email_designs"
-CONTACTS_DIR="backend/storage/contacts"
-METRICS_DIR="backend/storage/metrics"
-
-OAUTH_READ_TIMEOUT=60
-OAUTH_CONNECT_TIMEOUT=15
-OAUTH_RETRIES=2
-COGNITO_DOMAIN=
-COGNITO_CLIENT_ID=
-COGNITO_CLIENT_SECRET=
-COGNITO_POOL_ID=
-COGNITO_SERVER_METADATA_URL=
-COGNITO_REDIRECT_URI="http://localhost:443/auth/callback"
-COGNITO_REGION="us-west-1"
-CORS_ALLOWED_ORIGINS="*"
-FASTAPI_SECRET_KEY=super-secret-fastapi-key
-BASE_URL=http://localhost:443
-VITE_WS_API_ID=
-VITE_AWS_REGION=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_AUTH_REDIRECT_URI=
-GOOGLE_OAUTH_METADATA_URL=""
+# View email delivery metrics
+python -m agents.NaturalLanguageEmailer_Mailgun_agent metrics
 ```
 
+## Environment Variables
 
-### Setup Ai
-ai/README.ai.md
+Copy `env.example` to `.env` and fill in the values. Key groups:
 
-### Setup API
-api/README.api.md
+| Group | Variables |
+|-------|-----------|
+| AWS / Bedrock | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_ACCOUNT_ID`, `MODEL`, `PROVIDER` |
+| Mailgun | `MAILGUN_API_KEY`, `NEVERBOUNCE_DOMAIN` |
+| NeverBounce | `NEVERBOUNCE_CUSTOM_APP_API_KEY` |
+| Database | `DB_URL` (default: `sqlite:///backend/storage/database/crm.db`) |
+| Auth — Cognito | `COGNITO_CLIENT_ID`, `COGNITO_CLIENT_SECRET`, `COGNITO_POOL_ID`, `COGNITO_REDIRECT_URI` |
+| Auth — Google | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_AUTH_REDIRECT_URI` |
+| Routing | `SERVER_ROUTE_PREFIX` (default: `/e3`), `CLIENT_ROUTE_PREFIX` |
+| Storage paths | `UPLOAD_DIR`, `EMAIL_DESIGN_DIR`, `CONTACTS_DIR`, `METRICS_DIR` |
 
-### Setup UiUx
-api/README.uiux.md
+## Frontend Config
 
+Edit `frontend/js/global.js`:
 
-
-### Production deploy
-
-- transfer e3-main.zip to server
-- update auth variables in PROJECT_ROOT/.env
-- open port 443
-- setup nlb and alb
-- create target group to port 443 to ec2 instance
-- add ALB rule to alb to point to ec2 instance target group, route /e3, OR /e3/*
-- modify the ALB common ruleset for the ACL associated with respective ALB WAF, change max body size rule to allow
-- create app user sudo useradd --system --no-create-home --shell /usr/sbin/nologin e3
-- create service file
-- sudo chown -R e3:e3 .e3/
-- make env dir writeable 777 .e3/
-```
-[Unit]
-Description=My Python API Service
-After=network.target
-
-[Service]
-Type=simple
-User=e3
-WorkingDirectory=/opt/e3
-ExecStart=/bin/bash -c 'source /opt/.e3/bin/activate && python -m api'
-Restart=always
-Environment=PYTHONUNBUFFERED=1
-
-[Install]
-WantedBy=multi-user.target
+```js
+const SERVER_ROUTE_PREFIX = `/e3`
+const CLIENT_ROUTE_PREFIX = `/e3`
+const S3_BUCKET_NAME = "e3-designs"
+const UI_PORT = 443
 ```
 
+## Production Deployment
+
+The `cicd/` directory handles automated deployment. For manual setup:
+
+1. Transfer release archive to server
+2. Configure `.env` with production values
+3. Create a system user:
+   ```shell
+   sudo useradd --system --no-create-home --shell /usr/sbin/nologin e3
+   ```
+4. Set up the virtual environment and permissions:
+   ```shell
+   sudo chown -R e3:e3 .e3/
+   ```
+5. Install the systemd service (see `uvicorn.service`)
+6. Configure networking:
+   - Open port 443
+   - Set up ALB/NLB with target group pointing to the EC2 instance
+   - Add ALB rule for `/e3` and `/e3/*`
+   - Update WAF ACL max body size rule if needed
+
+## Project Documentation
+
+- `AGENTS.md` — Agent routing and project structure
+- `CONTEXT.md` — Project context and goals
+- `CHANGELOG.md` — Release history
+- Each agent directory has its own `CONTEXT.md`
+
+## OpenCode Agent
+
+The project includes an [OpenCode](https://opencode.ai) agent config at `.opencode/agents/e3.md`. It gives OpenCode project-aware context so it understands the agent structure, symlinks, and conventions when you use it for development.
+
+- Model: `us.amazon.nova-pro-v1:0`
+- Mode: subagent
+- Tools: write, bash
+
+The agent is pre-configured to read `AGENTS.md` and per-agent `CONTEXT.md` files before making changes.
