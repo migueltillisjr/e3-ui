@@ -1,0 +1,9 @@
+{
+  "design_name": "email_design.html",
+  "html_email_design": "https://e3-designs.s3.amazonaws.com/email_design.html",
+  "subject": "Got summer plans? Hawaii APSI 2025",
+  "preview": "Hawaii Advanced Placement Summer Institute Training",
+  "from_data": "Jennie < jennie@e3.hawaiiapsi.org >",
+  "tracking": "yes",
+  "send_date": "2025-05-08"
+}
