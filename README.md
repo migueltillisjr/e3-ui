@@ -113,7 +113,7 @@ The `cicd/` directory handles automated deployment. For manual setup:
    ```shell
    sudo chown -R e3:e3 .e3/
    ```
-5. Install the systemd service (see `uvicorn.service`)
+5. Install the systemd service (see `e3.service`)
 6. Configure networking:
    - Open port 443
    - Set up ALB/NLB with target group pointing to the EC2 instance
