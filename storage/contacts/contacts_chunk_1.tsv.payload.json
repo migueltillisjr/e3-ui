@@ -1,0 +1,15 @@
+{
+    "design_name": "basic_design",
+    "subject": "Hello",
+    "preview": "yooo it works",
+    "from": "Sender <jennie@e3.ldmg.org>",
+    "to": [
+        [
+            "Miguel",
+            "migueltillisjr@gmail.com"
+        ]
+    ],
+    "html_email_design": "https://e3-designs.s3.amazonaws.com/email_design1.html",
+    "o:tracking": "yes",
+    "send_date": "2025-09-01"
+}

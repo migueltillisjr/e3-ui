@@ -56,7 +56,7 @@ The app will be available at `https://localhost:443/e3/`
 All agents are accessed through the router via natural language:
 
 ```shell
-# Query contacts
+# Query contacts (NL → SQL)
 python -m agents.router "Get all contacts from Hawaii"
 
 # Validate emails via NeverBounce
@@ -69,12 +69,36 @@ python -m agents.router "Add bright colors <h1>visit Hawaii</h1>"
 Direct agent access:
 
 ```shell
-# Send an email campaign
-python -m agents.NaturalLanguageEmailer_Mailgun_agent send
+# Query contacts directly (bypasses router)
+python -m agents.NaturalLanguageDatabase "return all validated contacts"
+
+# Generate a full HTML email design
+python -m agents.NaturalLanguageEmailDesigner "Create a welcome email for new subscribers"
+
+# Edit an HTML snippet directly
+python -m agents.NaturalLanguageHtmlSnippetEditor "Add bright colors <h1>visit Hawaii</h1>"
+
+# Validate contacts directly
+python -m agents.NaturalLanguageContactsValidator "validate the contact with email user@example.com"
+
+# Send an email campaign (uses defaults if no JSON provided)
+python -m agents.NaturalLanguageEmailer_Mailgun send
+.e3-ui/bin/python -m agents.NaturalLanguageEmailer_Mailgun send '{"design_name":"email_design1.html","subject":"Hello","from_data":"Sender <sender@example.com>","tracking":"yes","send_date":"2025-09-01"}'
 
 # View email delivery metrics
-python -m agents.NaturalLanguageEmailer_Mailgun_agent metrics
+python -m agents.NaturalLanguageEmailer_Mailgun metrics
 ```
+
+### Agent CLI Reference
+
+| Agent | Command | Args |
+|-------|---------|------|
+| Router (routes to sub-agents) | `python -m agents.router "<query>"` | `<query>` — natural language request |
+| NL Database (NL → SQL) | `python -m agents.NaturalLanguageDatabase "<query>"` | `<query>` — natural language query |
+| Email Designer | `python -m agents.NaturalLanguageEmailDesigner "<query>"` | `<query>` — design description |
+| HTML Snippet Editor | `python -m agents.NaturalLanguageHtmlSnippetEditor "<query>"` | `<query>` — edit instruction + HTML |
+| Contacts Validator | `python -m agents.NaturalLanguageContactsValidator "<query>"` | `<query>` — validation instruction |
+| Emailer (Mailgun) | `python -m agents.NaturalLanguageEmailer_Mailgun <action> [json]` | `<action>` — `send` or `metrics`; optional JSON kwargs for send |
 
 ## Environment Variables
 

@@ -1,0 +1,1 @@
+get the contact migueltillisjr@gmail.com then send an email to him '{"design_name": "basic_design", "html_email_design":"email_design1.html","subject":"Hello","from_data":"Sender <jennie@e3.ldmg.org>","tracking":"yes","send_date":"2025-09-01", "preview": "yooo it works"}'
