@@ -29,9 +29,9 @@ uvicorn backend:app \
 
 
 ```shell
+#e3-ui % tree -L 2 -I '__pycache__|.git|.pytest_cache|.DS_Store|.e3-ui|node_modules|*.log'
 # neverbounce agent
 python -m agents.router "validate the first 2 contacts from the united states"
-# nldb agent
 python -m agents.router "Get all contacts"
 python -m agents.router "get all contacts with email migueltillisjr@gmail.com"
 # mailgun_agent, send
@@ -40,6 +40,7 @@ python -m agents.NaturalLanguageEmailer_Mailgun_agent send
 python -m agents.NaturalLanguageEmailer_Mailgun_agent metrics
 # nlemaildesigner agent
 python -m agents.nlemaildesigner "Add bright colors <h1>visit Hawaii and learn how to teach</h2>"
+python -m agents.nlemaildesigner "validate all contacts from Hawaii"
 ```
 
 ### User Pools
