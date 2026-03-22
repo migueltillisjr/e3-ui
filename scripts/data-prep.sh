@@ -42,6 +42,7 @@ run_step() {
 # -- Pre-flight ---------------------------------------------------------------
 mkdir -p storage/contacts
 mkdir -p storage/database
+mkdir -p storage/metrics
 mkdir -p "$(dirname "$LOG_FILE")"
 info "Pipeline started — log: $LOG_FILE"
 echo ""

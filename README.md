@@ -23,6 +23,9 @@ Contact management, email design, campaign delivery, and email validation — al
 ## Quick Start
 
 ```shell
+# TIPS:
+# - Setup your IP list in mailgun to allow API requests
+
 # 1. Create and activate virtual environment
 python -m venv .e3
 source .e3/bin/activate
