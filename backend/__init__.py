@@ -16,10 +16,19 @@ from fastapi import FastAPI, Request, Form, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from agents.router import route_ai_request
-from agents.NaturalLanguageEmailer_Mailgun import upload_html_design_to_bucket, get_metrics
-from agents.NaturalLanguageEmailer_Mailgun.entrypoint import initiate_email_send
-from agents.NaturalLanguageDatabase.tsv_to_db_original_contacts import import_tsv_files
+try:
+    from agents.router import route_ai_request
+    from agents.NaturalLanguageEmailer_Mailgun import upload_html_design_to_bucket, get_metrics
+    from agents.NaturalLanguageEmailer_Mailgun.entrypoint import initiate_email_send
+    from agents.NaturalLanguageDatabase.tsv_to_db_original_contacts import import_tsv_files
+    AGENTS_AVAILABLE = True
+except ImportError:
+    AGENTS_AVAILABLE = False
+    route_ai_request = None
+    upload_html_design_to_bucket = None
+    get_metrics = None
+    initiate_email_send = None
+    import_tsv_files = None
 import uvicorn
 import os
 import re
@@ -303,6 +312,8 @@ async def serve_index(request: Request, file: str = Query("editor.html")):
 
 @app.post(f"{SERVER_ROUTE_PREFIX}/ai_agent")
 async def ai_agent(request: Request, payload: dict = Body(...)):
+    if not AGENTS_AVAILABLE:
+        return JSONResponse(status_code=503, content={"error": "AI agents are not installed."})
     try:
         print(payload.get("message"))
         response = route_ai_request(query=payload.get("message"))
@@ -337,6 +348,8 @@ async def ai_agent(request: Request, payload: dict = Body(...)):
 # ------------------------
 @app.get(f"{SERVER_ROUTE_PREFIX}/view_metrics")
 async def view_metrics():
+    if not AGENTS_AVAILABLE:
+        return JSONResponse(status_code=503, content={"error": "AI agents are not installed."})
     try:
         saved_metrics_path = METRICS_DIR + "/email_metrics_current.png"
         get_metrics(saved_metrics_path=saved_metrics_path)
@@ -393,6 +406,8 @@ async def save_email_config(
 
 @app.post(f"{SERVER_ROUTE_PREFIX}/send_campaign")
 async def send_email(payload: SendEmailPayload):
+    if not AGENTS_AVAILABLE:
+        return JSONResponse(status_code=503, content={"error": "AI agents are not installed."})
     try:
         print("debug info: /send_campaign called")
         # Define path to the contacts file
@@ -548,9 +563,10 @@ async def upload_contacts(file: UploadFile = File(...)):
 
 
 
-    print("debug info: importing tsv files")
-    import_tsv_files(TSV_DIRECTORY=CONTACTS_DIR)
-    print("debug info: tsv files imported")
+    if AGENTS_AVAILABLE:
+        print("debug info: importing tsv files")
+        import_tsv_files(TSV_DIRECTORY=CONTACTS_DIR)
+        print("debug info: tsv files imported")
 
     return JSONResponse({
         "ok": True,
@@ -620,7 +636,8 @@ async def save_email_design(file: str = Query("email_design.html"), payload: dic
             f.write(html_content)
 
         # Optional: upload to bucket
-        upload_html_design_to_bucket(file_name=file_path)
+        if AGENTS_AVAILABLE:
+            upload_html_design_to_bucket(file_name=file_path)
 
         return {"status": "success", "message": f"HTML saved to {file_path}"}
     except Exception as e:
@@ -650,7 +667,8 @@ async def upload_image(image: UploadFile = File(...)):
         with open(filepath, "wb") as f:
             f.write(await image.read())
 
-        upload_html_design_to_bucket(file_name=str(IMAGE_DIR) + "/" + image.filename)
+        if AGENTS_AVAILABLE:
+            upload_html_design_to_bucket(file_name=str(IMAGE_DIR) + "/" + image.filename)
 
         return {"message": f"Image saved", "url": f"https://e3-designs.s3.amazonaws.com/{image.filename}"}
     except Exception as e:
