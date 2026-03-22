@@ -1,4 +1,6 @@
 .e3tb
+*.key
+*.pem
 node_modules
 /agents/
 notes.txt
@@ -7,6 +9,8 @@ __pycache__/
 !.gitignore
 !.opencode
 e3-release.zip
+*.key
+*.pem
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
